@@ -1,4 +1,5 @@
 # First, build the application in the `/app` directory.
+# Build context is backend/ — run: docker build -f Docker_files/Dockerfile ..
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
