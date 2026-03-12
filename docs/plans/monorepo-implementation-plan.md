@@ -8,12 +8,13 @@ This plan covers the steps to migrate the current Django project into the full m
 
 ## Current State
 
-The repository is a standard Django project with:
-- A single `manage.py` at the root
-- `django_project/` for settings, urls, wsgi
-- `accounts/` and `pages/` Django apps at the root level
-- Templates, static files, and migrations co-located at the root
-- No API layer, no frontend, no docs structure
+The repository is partially migrated:
+- `backend/` directory exists with `manage.py`, `core/` (renamed from `django_project/`), `accounts/`, `pages/`, `templates/`, `static/`, `.env`, `pyproject.toml`
+- `manage.py` and `core/settings.py` still reference `django_project.*` — not yet updated to `core.*`
+- `accounts/` and `pages/` apps are still at `backend/` root, not in `backend/apps/`
+- `frontend/` directory exists but is empty
+- `docs/plans/` exists; no `standards/`, `guides/`, or `explanations/` yet
+- Docker files are in `backend/Docker_files/`, not at the repo root
 
 ---
 
@@ -54,22 +55,23 @@ The repository is a standard Django project with:
 
 **Goal:** Move the existing Django project into `backend/` and align with conventions.
 
-- [ ] Create `backend/` directory
-- [ ] Move `manage.py` → `backend/manage.py`
-- [ ] Move `django_project/` → `backend/core/` (settings, urls, wsgi, asgi)
-  - [ ] Update `manage.py` to reference `core.settings`
-  - [ ] Update `wsgi.py` / `asgi.py` module paths
-  - [ ] Update `core/urls.py` import paths
-- [ ] Create `backend/apps/` directory
-- [ ] Move `accounts/` → `backend/apps/accounts/`
-- [ ] Move `pages/` → `backend/apps/pages/`
-  - [ ] Update `INSTALLED_APPS` in `core/settings.py` to use new paths (e.g. `apps.accounts`, `apps.pages`)
-  - [ ] Update all internal import paths in moved apps
-- [ ] Move `templates/` and `static/` into `backend/`
-  - [ ] Update `TEMPLATES` and `STATICFILES_DIRS` settings accordingly
-- [ ] Move `requirements.txt` → `backend/requirements.txt`
-- [ ] Create `backend/.env.example` with all required environment variables
-- [ ] Verify Django starts correctly: `python manage.py check`
+- [x] Create `backend/` directory
+- [x] Move `manage.py` → `backend/manage.py`
+- [x] Move `django_project/` → `backend/core/` (settings, urls, wsgi, asgi)
+  - [x] Update `manage.py` to reference `core.settings`
+  - [x] Update `wsgi.py` / `asgi.py` module paths
+  - [x] Update `core/urls.py` import paths
+  - [x] Update `ROOT_URLCONF` in `core/settings.py` to `core.urls`
+- [x] Create `backend/apps/` directory
+- [x] Move `accounts/` → `backend/apps/accounts/`
+- [x] Move `pages/` → `backend/apps/pages/`
+  - [x] Update `INSTALLED_APPS` in `core/settings.py` to use new paths (e.g. `apps.accounts`, `apps.pages`)
+  - [x] Update all internal import paths in moved apps
+- [x] `templates/` and `static/` already inside `backend/`
+  - [x] Update `TEMPLATES` and `STATICFILES_DIRS` settings accordingly
+- [x] Move/convert `pyproject.toml` deps → `backend/requirements.txt` (or keep `pyproject.toml`)
+- [x] Create `backend/.env.example` with all required environment variables
+- [x] Verify Django starts correctly: `python manage.py check`
 
 ---
 
