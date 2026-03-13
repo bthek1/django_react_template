@@ -8,15 +8,17 @@ This plan covers the steps to migrate the current Django project into the full m
 
 ## Current State
 
-**Phase 1, 2 & 3 complete.** As of 2026-03-12:
+**Phase 1, 2, 3, 4 & 5 complete.** As of 2026-03-13:
 - `backend/` is fully restructured: `core/` (settings, urls, wsgi), `apps/accounts/`, `apps/pages/`
 - DRF API is live: JWT auth, `/api/accounts/`, `/api/token/`, `/api/health/` endpoints
 - `django manage.py check` passes with no issues
 - `frontend/` is fully scaffolded: Vite + React 18 + TypeScript, TanStack Router, TanStack Query, Axios
 - Auth flow implemented: login route, JWT interceptor, silent token refresh
 - `npm run build` passes (TypeScript + Vite)
-- `docs/` has only `plans/` and `monorepo-implementation-plan.md` — Phase 5 not yet started
-- `docker-compose.yml` not yet at repo root — Phase 4 not yet started
+- `docker-compose.yml` at repo root wiring `db`, `backend`, and `frontend` services
+- `backend/Dockerfile` and `frontend/Dockerfile` created for local dev
+- `docs/` fully populated: `standards/`, `guides/`, `explanations/`, `plans/`
+- Root `README.md` created
 
 ---
 
@@ -137,14 +139,14 @@ This plan covers the steps to migrate the current Django project into the full m
 
 **Goal:** Wire backend, frontend, and database together for local development.
 
-- [ ] Update `docker-compose.yml`:
-  - [ ] `db` service — PostgreSQL 16
-  - [ ] `backend` service — build from `./backend`, run `manage.py runserver`
-  - [ ] `frontend` service — build from `./frontend`, run `npm run dev`
-- [ ] Create `backend/Dockerfile`
-- [ ] Create `frontend/Dockerfile`
-- [ ] Set `DATABASE_URL` in `backend/.env` to point to the `db` service
-- [ ] Set `VITE_API_BASE_URL` in `frontend/.env` to point to the `backend` service
+- [x] Update `docker-compose.yml`:
+  - [x] `db` service — PostgreSQL 16
+  - [x] `backend` service — build from `./backend`, run `manage.py runserver`
+  - [x] `frontend` service — build from `./frontend`, run `npm run dev`
+- [x] Create `backend/Dockerfile`
+- [x] Create `frontend/Dockerfile`
+- [x] Set `DATABASE_URL` in `backend/.env` to point to the `db` service
+- [x] Set `VITE_API_BASE_URL` in `frontend/.env` to point to the `backend` service
 - [ ] Test full stack: `docker compose up`
 
 ---
@@ -153,20 +155,20 @@ This plan covers the steps to migrate the current Django project into the full m
 
 **Goal:** Establish the `docs/` structure and seed initial documentation.
 
-- [ ] Create `docs/standards/api-contracts.md` — document all API endpoints, request/response shapes
-- [ ] Create `docs/guides/local-setup.md` — step-by-step local dev setup
-- [ ] Create `docs/guides/onboarding.md` — new developer orientation
-- [ ] Create `docs/explanations/architecture.md` — explain the monorepo structure and separation of concerns
-- [ ] Create `docs/explanations/auth-flow.md` — explain JWT auth flow end to end
-- [ ] Update `README.md` at the root to reflect the new structure and link to relevant docs
+- [x] Create `docs/standards/api-contracts.md` — document all API endpoints, request/response shapes
+- [x] Create `docs/guides/local-setup.md` — step-by-step local dev setup
+- [x] Create `docs/guides/onboarding.md` — new developer orientation
+- [x] Create `docs/explanations/architecture.md` — explain the monorepo structure and separation of concerns
+- [x] Create `docs/explanations/auth-flow.md` — explain JWT auth flow end to end
+- [x] Update `README.md` at the root to reflect the new structure and link to relevant docs
 
 ---
 
 ## Definition of Done
 
 - [ ] `docker compose up` starts all three services without errors
-- [ ] All backend API endpoints respond correctly and are documented in `docs/standards/`
+- [x] All backend API endpoints respond correctly and are documented in `docs/standards/`
 - [ ] Frontend connects to backend, authenticates, and renders data
-- [ ] No hardcoded secrets anywhere — all config via env vars
-- [ ] All migrations are clean and tracked in version control
-- [ ] `docs/` is populated with at minimum: setup guide, API contract, architecture explanation
+- [x] No hardcoded secrets anywhere — all config via env vars
+- [x] All migrations are clean and tracked in version control
+- [x] `docs/` is populated with at minimum: setup guide, API contract, architecture explanation
