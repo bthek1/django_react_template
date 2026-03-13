@@ -8,13 +8,15 @@ This plan covers the steps to migrate the current Django project into the full m
 
 ## Current State
 
-The repository is partially migrated:
-- `backend/` directory exists with `manage.py`, `core/` (renamed from `django_project/`), `accounts/`, `pages/`, `templates/`, `static/`, `.env`, `pyproject.toml`
-- `manage.py` and `core/settings.py` still reference `django_project.*` — not yet updated to `core.*`
-- `accounts/` and `pages/` apps are still at `backend/` root, not in `backend/apps/`
-- `frontend/` directory exists but is empty
-- `docs/plans/` exists; no `standards/`, `guides/`, or `explanations/` yet
-- Docker files are in `backend/Docker_files/`, not at the repo root
+**Phase 1, 2 & 3 complete.** As of 2026-03-12:
+- `backend/` is fully restructured: `core/` (settings, urls, wsgi), `apps/accounts/`, `apps/pages/`
+- DRF API is live: JWT auth, `/api/accounts/`, `/api/token/`, `/api/health/` endpoints
+- `django manage.py check` passes with no issues
+- `frontend/` is fully scaffolded: Vite + React 18 + TypeScript, TanStack Router, TanStack Query, Axios
+- Auth flow implemented: login route, JWT interceptor, silent token refresh
+- `npm run build` passes (TypeScript + Vite)
+- `docs/` has only `plans/` and `monorepo-implementation-plan.md` — Phase 5 not yet started
+- `docker-compose.yml` not yet at repo root — Phase 4 not yet started
 
 ---
 
@@ -79,28 +81,28 @@ The repository is partially migrated:
 
 **Goal:** Strip out server-rendered views and expose a pure REST API.
 
-- [ ] Add to `backend/requirements.txt`:
+- [x] uv add:
   - `djangorestframework`
   - `djangorestframework-simplejwt`
   - `django-environ`
-  - `psycopg2-binary`
-- [ ] Add `rest_framework` and `rest_framework_simplejwt` to `INSTALLED_APPS`
-- [ ] Configure DRF default settings in `core/settings.py` (renderer, authentication, permissions)
-- [ ] Configure JWT settings (`SIMPLE_JWT` block)
-- [ ] Migrate settings to use `django-environ` — remove hardcoded secrets
-- [ ] Refactor `accounts` app:
-  - [ ] Replace form/template views with DRF `APIView` or `ViewSet`
-  - [ ] Create `accounts/serializers.py`
-  - [ ] Create `accounts/services.py` for business logic
-  - [ ] Update `accounts/urls.py` — all routes under `/api/accounts/`
-  - [ ] Update account models to use `UUIDField` as primary key
-  - [ ] Add JWT token endpoints (`/api/token/`, `/api/token/refresh/`)
-- [ ] Refactor `pages` app:
-  - [ ] Remove template views — add API-only views if needed, or remove app if not applicable
-- [ ] Remove `templates/` and `static/` from backend (frontend will own UI)
-- [ ] Update root `core/urls.py` to include all API routes under `/api/`
-- [ ] Run and fix all migrations
-- [ ] Test all endpoints with a REST client
+  - `django-cors-headers`
+- [x] Add `rest_framework`, `rest_framework_simplejwt`, `corsheaders` to `INSTALLED_APPS`
+- [x] Configure DRF default settings in `core/settings/base.py` (renderer, authentication, permissions)
+- [x] Configure JWT settings (`SIMPLE_JWT` block)
+- [x] Migrate settings to use `django-environ` — remove hardcoded secrets
+- [x] Refactor `accounts` app:
+  - [x] Replace form/template views with DRF `APIView` or `ViewSet`
+  - [x] Create `accounts/serializers.py`
+  - [x] Create `accounts/services.py` for business logic
+  - [x] Update `accounts/urls.py` — all routes under `/api/accounts/`
+  - [x] Update account models to use `UUIDField` as primary key
+  - [x] Add JWT token endpoints (`/api/token/`, `/api/token/refresh/`)
+- [x] Refactor `pages` app:
+  - [x] Remove template views — replaced with `/api/health/` health check endpoint
+- [x] Remove `templates/` and `static/` from backend (frontend will own UI)
+- [x] Update root `core/urls.py` to include all API routes under `/api/`
+- [x] Run and fix all migrations
+- [x] Test all endpoints with a REST client
 
 ---
 
@@ -108,26 +110,26 @@ The repository is partially migrated:
 
 **Goal:** Create a React/Vite/TypeScript SPA that consumes the backend API.
 
-- [ ] Scaffold frontend: `npm create vite@latest frontend -- --template react-ts`
-- [ ] Install dependencies:
+- [x] Scaffold frontend: `npm create vite@latest frontend -- --template react-ts`
+- [x] Install dependencies:
   - `@tanstack/react-query`
   - `@tanstack/react-router`
   - `axios`
-- [ ] Set up project structure:
-  - [ ] `src/api/client.ts` — Axios instance with JWT interceptor (reads `VITE_API_BASE_URL`)
-  - [ ] `src/api/queryKeys.ts` — centralised query key constants
-  - [ ] `src/types/` — TypeScript types matching API contracts
-  - [ ] `src/hooks/` — custom hooks directory
-  - [ ] `src/components/` — shared UI components
-  - [ ] `src/routes/` — TanStack Router file-based routes
-- [ ] Configure TanStack Router with root route and basic layout
-- [ ] Configure TanStack Query `QueryClientProvider` in `main.tsx`
-- [ ] Implement auth flow:
-  - [ ] Login page and route (`/login`)
-  - [ ] JWT token storage and refresh logic in `client.ts`
-  - [ ] Protected route wrapper
-- [ ] Create `frontend/.env.example` with `VITE_API_BASE_URL`
-- [ ] Verify dev server runs: `npm run dev`
+- [x] Set up project structure:
+  - [x] `src/api/client.ts` — Axios instance with JWT interceptor (reads `VITE_API_BASE_URL`)
+  - [x] `src/api/queryKeys.ts` — centralised query key constants
+  - [x] `src/types/` — TypeScript types matching API contracts
+  - [x] `src/hooks/` — custom hooks directory
+  - [x] `src/components/` — shared UI components
+  - [x] `src/routes/` — TanStack Router file-based routes
+- [x] Configure TanStack Router with root route and basic layout
+- [x] Configure TanStack Query `QueryClientProvider` in `main.tsx`
+- [x] Implement auth flow:
+  - [x] Login page and route (`/login`)
+  - [x] JWT token storage and refresh logic in `client.ts`
+  - [x] Protected route wrapper
+- [x] Create `frontend/.env.example` with `VITE_API_BASE_URL`
+- [x] Verify dev server runs: `npm run dev`
 
 ---
 
