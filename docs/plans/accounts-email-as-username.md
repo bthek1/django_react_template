@@ -1,7 +1,8 @@
 # Plan: Use Email as Username in Accounts App
 
-**Status:** Proposed  
+**Status:** Complete  
 **Date:** 2026-03-14  
+**Completed:** 2026-03-14  
 
 ---
 
@@ -430,13 +431,13 @@ class TestUserDetailView:
 
 ## Implementation Order
 
-1. Update `models.py` (add manager, remove username, set `USERNAME_FIELD`).
-2. Update `services.py`.
-3. Update `serializers.py`.
-4. Update `forms.py`.
-5. Update `admin.py`.
-6. Generate and apply migration.
-7. Replace `tests.py` with the new test suite.
+1. ✅ Update `models.py` (add manager, remove username, set `USERNAME_FIELD`).
+2. ✅ Update `services.py`.
+3. ✅ Update `serializers.py`.
+4. ✅ Update `forms.py`.
+5. ✅ Update `admin.py` (includes `fieldsets` and `add_fieldsets` for email-only admin).
+6. ✅ Generate and apply migration (`0002_alter_customuser_managers_remove_customuser_username_and_more.py`).
+7. ✅ Replace `tests.py` with the new test suite.
 8. Run `pytest` and confirm all tests pass.
 
 ---
@@ -452,10 +453,10 @@ If rollback is needed before deployment:
 
 ## Acceptance Criteria
 
-- [ ] `User.objects.create_user(email=..., password=...)` works without `username`.
-- [ ] `User.objects.create_superuser(email=..., password=...)` works.
-- [ ] `POST /api/token/` accepts `email` + `password` and returns JWT tokens.
-- [ ] `POST /api/accounts/register/` accepts `email` + `password` (no `username`).
-- [ ] `GET /api/accounts/me/` returns user data without `username` field.
-- [ ] All new pytest tests pass.
-- [ ] No `username` column exists in the `accounts_customuser` table.
+- [x] `User.objects.create_user(email=..., password=...)` works without `username`.
+- [x] `User.objects.create_superuser(email=..., password=...)` works.
+- [x] `POST /api/token/` accepts `email` + `password` and returns JWT tokens.
+- [x] `POST /api/accounts/register/` accepts `email` + `password` (no `username`).
+- [x] `GET /api/accounts/me/` returns user data without `username` field.
+- [x] All new pytest tests pass.
+- [x] No `username` column exists in the `accounts_customuser` table.
