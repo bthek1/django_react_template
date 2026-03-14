@@ -1,6 +1,6 @@
 # TODO
 
 
-- [ ] use .env
-- [ ] use docker postgresql
-- [ ] setup linting and pytest
+- [x] use .env
+- [x] use docker postgresql
+- [x] setup linting and pytest

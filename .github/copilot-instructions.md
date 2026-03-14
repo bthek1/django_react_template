@@ -3,7 +3,7 @@
 ## Project Overview
 This is a monorepo containing a decoupled web application:
 - `backend/` — Django REST Framework API (Python) with PostgreSQL
-- `frontend/` — React SPA built with Vite (TypeScript) with TanStack Query + TanStack Router
+- `frontend/` — React SPA built with Vite (TypeScript) with TanStack Query + TanStack Router, Tailwind CSS, shadcn/ui, React Hook Form + Zod, Zustand, Vitest
 
 The backend exposes only API endpoints. The frontend consumes them via HTTP.
 They are developed and deployed independently.
@@ -72,18 +72,74 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 
 ## Frontend (`frontend/`)
 
-**Stack:** React 18, TypeScript, Vite, TanStack Router, TanStack Query v5, Axios
+**Stack:** React 18, TypeScript, Vite, TanStack Router, TanStack Query v5, Axios, Tailwind CSS v4, shadcn/ui, React Hook Form, Zod, Zustand, Vitest, date-fns, Plotly.js
 
 **Conventions:**
 - Functional components only — no class components
 - All API calls go through `src/api/client.ts` (Axios instance with JWT interceptor)
 - **Server state** managed exclusively by TanStack Query (`useQuery`, `useMutation`, `useInfiniteQuery`)
+- **Global/UI state** managed by Zustand stores in `src/store/` — never store server data in Zustand
 - **Routing** managed by TanStack Router — file-based routes under `src/routes/`
-- **Local/UI state** managed by `useState` / `useReducer` — never use Query for UI-only state
-- Co-locate component styles, tests, and types in the same folder as the component
+- **Local component state** managed by `useState` / `useReducer`
+- Co-locate component tests in the same folder as the component (`ComponentName.test.tsx`)
 - No business logic in components — extract to custom hooks in `src/hooks/`
 - Use TypeScript strictly — no `any`, define response types from API contracts in `src/types/`
 - Query keys are defined as constants in `src/api/queryKeys.ts`
+- Use `cn()` from `src/lib/utils.ts` for all conditional `className` merging (wraps `clsx` + `tailwind-merge`)
+- All path imports use the `@/` alias (resolves to `src/`) — never use relative `../../` imports across feature boundaries
+- shadcn/ui components live in `src/components/ui/` — copy-paste via `npx shadcn@latest add <component>`, never modify generated files directly
+
+**Styling — Tailwind CSS + shadcn/ui:**
+```ts
+// src/lib/utils.ts — always use cn() for conditional classes
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+- Tailwind CSS v4: CSS-first config via `@import "tailwindcss"` in `src/index.css` — no `tailwind.config.js`
+- shadcn/ui uses CSS variables for theming — do not override them with arbitrary Tailwind values
+- Install new shadcn/ui components with `npx shadcn@latest add <component>`
+
+**Forms — React Hook Form + Zod:**
+```ts
+// Define schema in src/schemas/<domain>.ts
+import { z } from 'zod'
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+})
+export type LoginSchema = z.infer<typeof loginSchema>
+
+// Use in component
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+const form = useForm<LoginSchema>({ resolver: zodResolver(loginSchema) })
+```
+- Zod schemas live in `src/schemas/` (one file per domain)
+- Always use shadcn/ui `Form`, `FormField`, `FormItem`, `FormMessage` primitives — they wrap RHF context
+
+**Global state — Zustand:**
+```ts
+// src/store/ui.ts
+import { create } from 'zustand'
+import { immer } from 'zustand/middleware/immer'
+
+interface UIState {
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+}
+
+export const useUIStore = create<UIState>()(immer((set) => ({
+  sidebarOpen: true,
+  setSidebarOpen: (open) => set((s) => { s.sidebarOpen = open }),
+})))
+```
+- One file per concern: `src/store/ui.ts`, `src/store/auth.ts`, etc.
+- Use `immer` middleware for state mutations
+- Never put server-fetched data in Zustand — that belongs in TanStack Query
 
 **TanStack Query patterns:**
 ```ts
@@ -115,12 +171,26 @@ export const Route = createFileRoute('/users/$userId')({
 })
 ```
 
+**Testing — Vitest + React Testing Library:**
+- Run with `just fe-test` or `cd frontend && npm test`
+- Test environment: `jsdom` (configured in `vite.config.ts`)
+- Setup file: `src/test/setup.ts` (imports `@testing-library/jest-dom`)
+- Co-locate tests with the component/hook they test: `Button.test.tsx` next to `Button.tsx`
+- Mock Axios at the module level — never make real HTTP calls in tests
+- Zod schemas are tested as pure unit tests (no DOM)
+
+**Utilities:**
+- Date formatting: `date-fns` — always import via `src/lib/date.ts` wrappers, never call `date-fns` directly in components
+- Charts: `plotly.js-dist-min` — always via the `src/components/charts/PlotlyChart.tsx` wrapper, always lazy-loaded
+
 **Env vars:** Prefix with `VITE_`. Access via `import.meta.env.VITE_*`.
 
 **Commands:**
 - Dev server: `just fe-dev`
 - Build: `just fe-build`
 - Lint: `just fe-lint`
+- Test: `just fe-test`
+- Test UI: `just fe-test-ui`
 - Install deps: `just fe-install`
 
 ---
@@ -141,6 +211,8 @@ Key commands:
 | `just be-lint` / `just be-fmt` | Lint / format backend |
 | `just fe-dev` | Run Vite dev server locally |
 | `just fe-build` | Production build |
+| `just fe-test` | Run frontend test suite |
+| `just fe-test-ui` | Run frontend tests with Vitest UI |
 | `just be-startapp name` | Scaffold a new Django app |
 
 ---
@@ -170,9 +242,15 @@ Key commands:
 ├── frontend/
 │   ├── src/
 │   │   ├── api/               # Axios client, endpoint functions, queryKeys
-│   │   ├── components/        # Shared/reusable UI components
+│   │   ├── components/
+│   │   │   ├── ui/            # shadcn/ui copy-paste components
+│   │   │   └── charts/        # PlotlyChart wrapper (lazy-loaded)
 │   │   ├── hooks/             # Custom hooks (business logic)
+│   │   ├── lib/               # Shared utilities: cn(), date wrappers
 │   │   ├── routes/            # TanStack Router file-based routes
+│   │   ├── schemas/           # Zod validation schemas (one file per domain)
+│   │   ├── store/             # Zustand stores (one file per concern)
+│   │   ├── test/              # Vitest setup file
 │   │   ├── types/             # Shared TypeScript types from API contracts
 │   │   └── main.tsx
 │   ├── vite.config.ts

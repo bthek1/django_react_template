@@ -3,6 +3,11 @@
 
 set dotenv-load := false
 
+# Clear any shell-activated virtualenv so uv uses the project's own .venv
+# (avoids "VIRTUAL_ENV does not match project environment path" warning)
+
+export VIRTUAL_ENV := ""
+
 # ── Default ────────────────────────────────────────────────────────────────────
 
 # Show available commands
@@ -120,9 +125,13 @@ fe-preview:
 fe-lint:
     cd frontend && npm run lint
 
-# Run frontend tests (if configured)
+# Run frontend tests
 fe-test:
     cd frontend && npm test
+
+# Run frontend tests in watch mode with Vitest UI
+fe-test-ui:
+    cd frontend && npm run test:ui
 
 # ── Dev ────────────────────────────────────────────────────────────────────────
 
@@ -135,12 +144,28 @@ db-up:
         && echo "DB already running." \
         || (echo "Starting DB..." && docker compose up -d db && echo "Waiting for DB to be ready..." && sleep 3)
 
-# Run backend and frontend dev servers concurrently (requires tmux or overmind)
+# Run backend and frontend dev servers concurrently (uses overmind if available)
 dev: db-up
-    @echo "Starting backend and frontend dev servers..."
-    @echo "  Backend : http://localhost:8004"
-    @echo "  Frontend: http://localhost:5174"
-    overmind start || (just be-dev & just fe-dev)
+    #!/usr/bin/env bash
+    echo "Starting backend and frontend dev servers..."
+    echo "  Backend : http://localhost:8004"
+    echo "  Frontend: http://localhost:5174"
+    _pids=()
+    _cleanup() {
+        echo ""
+        for pid in "${_pids[@]}"; do kill "$pid" 2>/dev/null || true; done
+        wait 2>/dev/null || true
+    }
+    trap _cleanup INT TERM EXIT
+    if command -v overmind &>/dev/null; then
+        overmind start
+    else
+        just be-dev &
+        _pids+=($!)
+        just fe-dev &
+        _pids+=($!)
+        wait "${_pids[@]}"
+    fi
 
 # ── Database ───────────────────────────────────────────────────────────────────
 
