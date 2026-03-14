@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useLogin } from '@/hooks/useAuth'
-import { loginSchema, type LoginSchema } from '@/schemas/auth'
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useLogin } from "@/hooks/useAuth";
+import { loginSchema, type LoginSchema } from "@/schemas/auth";
 import {
   Form,
   FormControl,
@@ -10,34 +10,46 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
-export const Route = createFileRoute('/login')({
+export const Route = createFileRoute("/login")({
   component: LoginPage,
-})
+});
 
 function LoginPage() {
-  const navigate = useNavigate()
-  const login = useLogin()
+  const navigate = useNavigate();
+  const login = useLogin();
 
   const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
+    defaultValues: { email: "", password: "" },
+  });
 
   function onSubmit(values: LoginSchema) {
     login.mutate(values, {
-      onSuccess: () => navigate({ to: '/' }),
+      onSuccess: () => navigate({ to: "/demo/chart" }),
       onError: () =>
-        form.setError('root', { message: 'Invalid credentials. Please try again.' }),
-    })
+        form.setError("root", {
+          message: "Invalid credentials. Please try again.",
+        }),
+    });
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-xl">Sign in</CardTitle>
@@ -46,7 +58,7 @@ function LoginPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
               {form.formState.errors.root && (
-                <p className="text-destructive text-sm">
+                <p className="text-sm text-destructive">
                   {form.formState.errors.root.message}
                 </p>
               )}
@@ -85,13 +97,28 @@ function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={login.isPending}>
-                {login.isPending ? 'Signing in…' : 'Sign in'}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={login.isPending}
+              >
+                {login.isPending ? "Signing in…" : "Sign in"}
               </Button>
             </form>
           </Form>
         </CardContent>
+        <CardFooter className="justify-center">
+          <p className="text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link
+              to="/signup"
+              className="font-medium text-primary hover:underline"
+            >
+              Sign up
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

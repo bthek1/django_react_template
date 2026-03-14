@@ -1,35 +1,30 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMe, useLogout } from "../hooks/useAuth";
+import { useEffect } from "react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { HeroBanner } from "@/components/home/HeroBanner";
+import { useMe } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/")({
-  component: HomePage,
+  component: LandingPage,
 });
 
-function HomePage() {
-  const { data: me, isLoading } = useMe();
-  const logout = useLogout();
+function LandingPage() {
+  const { data: me } = useMe();
   const navigate = useNavigate();
 
-  function handleLogout() {
-    logout();
-    navigate({ to: "/login" });
-  }
-
-  if (isLoading) return <p>Loading…</p>;
-
-  if (!me) {
-    navigate({ to: "/login" });
-    return null;
-  }
-
-  const displayName =
-    [me.first_name, me.last_name].filter(Boolean).join(" ") || me.email;
+  // Redirect authenticated users to the main app
+  useEffect(() => {
+    if (me) {
+      navigate({ to: "/demo/chart" });
+    }
+  }, [me, navigate]);
 
   return (
-    <div style={{ maxWidth: 600, margin: "40px auto", padding: "0 16px" }}>
-      <h1>Welcome, {displayName}!</h1>
-      <p>Email: {me.email}</p>
-      <button onClick={handleLogout}>Sign out</button>
+    <div className="relative min-h-screen bg-background">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
+      <HeroBanner />
     </div>
   );
 }
