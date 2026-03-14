@@ -9,7 +9,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "email", "username", "password")
+        fields = ("id", "email", "password")
 
     def create(self, validated_data):
         from .services import create_user
@@ -19,5 +19,5 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "email", "username", "first_name", "last_name", "date_joined")
+        fields = ("id", "email", "first_name", "last_name", "date_joined")
         read_only_fields = ("id", "date_joined")
