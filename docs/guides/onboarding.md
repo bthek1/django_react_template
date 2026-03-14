@@ -55,12 +55,18 @@ Key conventions:
 - **Routing:** TanStack Router (file-based, under `src/routes/`)
 - **Server state:** TanStack Query v5 (`useQuery`, `useMutation`)
 - **HTTP client:** Axios with a JWT interceptor (`src/api/client.ts`)
+- **Styling:** Tailwind CSS v4 + shadcn/ui (`src/components/ui/`)
+- **Forms:** React Hook Form + Zod (`src/schemas/`)
+- **Global state:** Zustand with immer (`src/store/`)
+- **Testing:** Vitest + React Testing Library (`just fe-test`)
 - **Query keys:** Centralised in `src/api/queryKeys.ts`
 
 Key conventions:
 - Functional components only — no class components
 - No business logic in components — extract to `src/hooks/`
 - All API types defined in `src/types/` matching API contracts
+- Zod schemas in `src/schemas/` — one file per domain
+- Use `cn()` from `src/lib/utils.ts` for all conditional `className` merging
 - `any` is banned — TypeScript strict mode
 
 ---
@@ -102,19 +108,35 @@ Any change to request/response shapes must be reflected in `docs/standards/api-c
 ```bash
 # Start everything
 docker compose up
+# or with the task runner:
+just up
 
 # Backend shell
 docker compose exec backend python manage.py shell
 
 # Run backend migrations
+just be-migrate
+# or directly:
 docker compose exec backend python manage.py migrate
 
 # Run backend tests
-docker compose exec backend python -m pytest
+just be-test
+# or directly:
+cd backend && uv run pytest
 
-# Frontend type check
-cd frontend && npm run build
+# Create new migrations
+just be-makemigrations
+
+# Lint / format backend
+just be-lint
+just be-fmt
+
+# Run frontend tests
+just fe-test
+
+# Frontend type check + bundle
+just fe-build
 
 # Frontend lint
-cd frontend && npm run lint
+just fe-lint
 ```

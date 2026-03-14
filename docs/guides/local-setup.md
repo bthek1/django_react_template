@@ -123,9 +123,15 @@ uv run pytest
 ### Frontend
 
 ```bash
-cd frontend
-npm run lint
-npm run build   # type-checks + bundles
+# Run the test suite
+just fe-test
+# or directly:
+cd frontend && npm test
+
+# Type-check + bundle
+just fe-build
+# or directly:
+cd frontend && npm run build
 ```
 
 ---

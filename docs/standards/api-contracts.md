@@ -15,7 +15,7 @@ Obtain a JWT access + refresh token pair.
 **Request body:**
 ```json
 {
-  "username": "string",
+  "email": "user@example.com",
   "password": "string"
 }
 ```
@@ -68,7 +68,6 @@ Create a new user account.
 ```json
 {
   "email": "user@example.com",
-  "username": "string",
   "password": "string (min 8 chars)"
 }
 ```
@@ -77,12 +76,11 @@ Create a new user account.
 ```json
 {
   "id": "<uuid>",
-  "email": "user@example.com",
-  "username": "string"
+  "email": "user@example.com"
 }
 ```
 
-**Errors:** `400` — validation error (duplicate username/email, weak password)
+**Errors:** `400` — validation error (duplicate email, weak password)
 
 ---
 
@@ -97,7 +95,6 @@ Retrieve the authenticated user's profile.
 {
   "id": "<uuid>",
   "email": "user@example.com",
-  "username": "string",
   "first_name": "string",
   "last_name": "string",
   "date_joined": "2026-01-01T00:00:00Z"
@@ -175,4 +172,4 @@ Content-Type: application/json
 
 - All primary keys are UUIDs (`uuid4`)
 - Timestamps are ISO 8601 in UTC
-- `CustomUser` extends Django's `AbstractUser` — `email` and `username` are both available
+- `CustomUser` extends Django's `AbstractUser` — `email` is the login identifier (no `username` field)

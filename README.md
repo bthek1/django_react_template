@@ -52,14 +52,18 @@ docker compose exec backend python manage.py migrate
 ├── backend/          Django REST API
 │   ├── core/         Settings, URLs, WSGI
 │   ├── apps/         Domain applications
-│   │   ├── accounts/ User model, registration, JWT auth
+│   │   ├── accounts/ User model (email-based), registration, JWT auth
 │   │   └── pages/    Health check
 │   └── manage.py
 ├── frontend/         React SPA
 │   └── src/
 │       ├── api/      Axios client, query keys, API functions
+│       ├── components/ui/  shadcn/ui components
 │       ├── hooks/    Custom hooks (auth, etc.)
+│       ├── lib/      cn() helper, date-fns wrappers
 │       ├── routes/   TanStack Router file-based routes
+│       ├── schemas/  Zod validation schemas
+│       ├── store/    Zustand global state slices
 │       └── types/    TypeScript types from API contracts
 ├── docs/             Project knowledge base
 └── docker-compose.yml
@@ -82,4 +86,10 @@ docker compose exec backend python manage.py migrate
 | Routing | TanStack Router |
 | Server state | TanStack Query v5 |
 | HTTP client | Axios |
+| Styling | Tailwind CSS v4 + shadcn/ui |
+| Forms | React Hook Form + Zod |
+| Global state | Zustand |
+| Testing (frontend) | Vitest + React Testing Library |
+| Utilities | date-fns, Plotly.js |
 | Container | Docker Compose |
+| Task runner | [just](https://github.com/casey/just) |
