@@ -73,12 +73,24 @@ frontend/
 │   │   ├── auth.ts        Auth API call functions
 │   │   └── queryKeys.ts   Centralised TanStack Query key constants
 │   ├── components/        Shared / reusable UI components
+│   │   └── ui/            shadcn/ui copy-paste components (Button, Input, Form, Card…)
 │   ├── hooks/             Custom hooks encapsulating business logic
 │   │   └── useAuth.ts     Auth state, login, logout
+│   ├── lib/
+│   │   ├── utils.ts       cn() helper (clsx + tailwind-merge)
+│   │   └── date.ts        date-fns wrappers (formatDate, formatRelative)
 │   ├── routes/            TanStack Router file-based routes
 │   │   ├── __root.tsx     Root layout
 │   │   ├── index.tsx      Home page
-│   │   └── login.tsx      Login page
+│   │   ├── login.tsx      Login page
+│   │   └── demo.chart.tsx Plotly chart demo
+│   ├── schemas/           Zod validation schemas (one file per domain)
+│   │   └── auth.ts        Login and register schemas
+│   ├── store/             Zustand global state (one file per concern)
+│   │   ├── ui.ts          UI flags (sidebar, modals)
+│   │   └── auth.ts        Client-side auth flags
+│   ├── test/
+│   │   └── setup.ts       Vitest setup (imports @testing-library/jest-dom)
 │   ├── types/
 │   │   └── auth.ts        TypeScript types matching API contracts
 │   └── main.tsx           App entry point (QueryClient, RouterProvider)
@@ -95,6 +107,14 @@ frontend/
 **Axios interceptor for JWT.** A single Axios instance in `client.ts` attaches `Authorization: Bearer <token>` headers and handles silent token refresh on 401 responses. No component ever touches tokens directly.
 
 **No business logic in components.** Components render UI. All logic (auth checks, data transformation, API calls) lives in hooks under `src/hooks/`.
+
+**Tailwind CSS v4 + shadcn/ui for styling.** All components use Tailwind utility classes. shadcn/ui components are copied into `src/components/ui/` via `npx shadcn@latest add <component>` and never modified directly. The `cn()` helper in `src/lib/utils.ts` (backed by `clsx` + `tailwind-merge`) handles conditional class merging.
+
+**React Hook Form + Zod for forms.** Form schemas are defined in `src/schemas/` (one file per domain) using Zod. Components use `useForm` with `zodResolver`. shadcn/ui `Form`, `FormField`, `FormItem`, and `FormMessage` primitives wrap the RHF context.
+
+**Zustand for global UI state.** Lightweight slices in `src/store/` (one file per concern) hold UI flags that don't belong in TanStack Query (e.g. sidebar open/close, logout-in-progress). The `immer` middleware is used for all mutations. Server-fetched data stays in TanStack Query — never in Zustand.
+
+**Vitest + React Testing Library for tests.** Tests run in a `jsdom` environment configured in `vite.config.ts`. Test files are co-located with the source file they test (e.g. `useAuth.test.tsx` next to `useAuth.ts`).
 
 ---
 

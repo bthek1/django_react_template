@@ -24,7 +24,7 @@ User submits login form
 useLogin() mutation (src/hooks/useAuth.ts)
   │
   ▼
-POST /api/token/  { username, password }
+POST /api/token/  { email, password }
   │
   ▼  (credentials valid)
 { access, refresh }
