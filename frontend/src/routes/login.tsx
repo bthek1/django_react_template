@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { BackendStatus } from "@/components/ui/BackendStatus";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -49,6 +50,9 @@ function LoginPage() {
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
       <div className="absolute right-4 top-4">
         <ThemeToggle />
+      </div>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <BackendStatus />
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

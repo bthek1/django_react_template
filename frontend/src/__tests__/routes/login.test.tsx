@@ -33,6 +33,10 @@ vi.mock("@/hooks/useTheme", () => ({
   useTheme: vi.fn().mockReturnValue({ theme: "light", setTheme: vi.fn() }),
 }));
 
+vi.mock("@/api/health", () => ({
+  getHealth: vi.fn().mockResolvedValue({ status: "ok" }),
+}));
+
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
