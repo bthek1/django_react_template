@@ -1,6 +1,6 @@
 # First, build the application in the `/app` directory.
 # Build context is backend/ — run: docker build -f Docker_files/Dockerfile ..
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # Then, use a final image without uv
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 # Copy the application from the builder
 COPY --from=builder --chown=app:app /app /app

@@ -1,0 +1,174 @@
+# Django + React Monorepo — Justfile
+# Run `just` or `just --list` to see all available commands.
+
+set dotenv-load := false
+
+# ── Default ────────────────────────────────────────────────────────────────────
+
+# Show available commands
+default:
+    @just --list
+
+# ── Docker ─────────────────────────────────────────────────────────────────────
+
+# Start all services (db, backend, frontend)
+up:
+    docker compose up
+
+# Start all services in the background
+up-d:
+    docker compose up -d
+
+# Stop all services
+down:
+    docker compose down
+
+# Stop all services and remove volumes
+down-v:
+    docker compose down -v
+
+# Rebuild all images
+build:
+    docker compose build
+
+# Rebuild a specific service: just build-svc backend
+build-svc svc:
+    docker compose build {{ svc }}
+
+# Tail logs for all services
+logs:
+    docker compose logs -f
+
+# Tail logs for a specific service: just logs-svc backend
+logs-svc svc:
+    docker compose logs -f {{ svc }}
+
+# ── Backend ────────────────────────────────────────────────────────────────────
+
+# Install backend dependencies (uv)
+be-install:
+    cd backend && uv sync --group dev
+
+# Run the Django dev server locally
+be-dev: be-makemigrations be-migrate
+    cd backend && uv run python manage.py runserver 0.0.0.0:8004
+
+# Apply database migrations
+be-migrate:
+    cd backend && uv run python manage.py migrate
+
+# Create new migrations after model changes
+be-makemigrations app="":
+    cd backend && uv run python manage.py makemigrations {{ app }}
+
+# Show pending migrations
+be-showmigrations:
+    cd backend && uv run python manage.py showmigrations
+
+# Open the Django shell
+be-shell:
+    cd backend && uv run python manage.py shell
+
+# Create a Django superuser
+be-superuser:
+    cd backend && uv run python manage.py createsuperuser --noinput
+
+# Collect static files
+be-collectstatic:
+    cd backend && uv run python manage.py collectstatic --noinput
+
+# Run backend test suite
+be-test:
+    cd backend && uv run pytest
+
+# Run backend tests with coverage
+be-test-cov:
+    cd backend && uv run pytest --cov=apps --cov-report=term-missing
+
+# Lint backend code (ruff, if available)
+be-lint:
+    cd backend && uv run ruff check .
+
+# Format backend code (ruff, if available)
+be-fmt:
+    cd backend && uv run ruff format .
+
+# Create a new Django app: just be-startapp myapp
+be-startapp name:
+    mkdir -p backend/apps/{{ name }}
+    cd backend && uv run python manage.py startapp {{ name }} apps/{{ name }}
+
+# ── Frontend ───────────────────────────────────────────────────────────────────
+
+# Install frontend dependencies
+fe-install:
+    cd frontend && npm install
+
+# Run the Vite dev server locally
+fe-dev:
+    cd frontend && npm run dev -- --host 0.0.0.0 --port 5174
+
+# Build the frontend for production
+fe-build:
+    cd frontend && npm run build
+
+# Preview the production build
+fe-preview:
+    cd frontend && npm run preview
+
+# Lint frontend code
+fe-lint:
+    cd frontend && npm run lint
+
+# Run frontend tests (if configured)
+fe-test:
+    cd frontend && npm test
+
+# ── Dev ────────────────────────────────────────────────────────────────────────
+
+# Install all dependencies (backend + frontend)
+install: be-install fe-install
+
+# Start the db container if not already running
+db-up:
+    @docker compose ps --status running db | grep -q db \
+        && echo "DB already running." \
+        || (echo "Starting DB..." && docker compose up -d db && echo "Waiting for DB to be ready..." && sleep 3)
+
+# Run backend and frontend dev servers concurrently (requires tmux or overmind)
+dev: db-up
+    @echo "Starting backend and frontend dev servers..."
+    @echo "  Backend : http://localhost:8004"
+    @echo "  Frontend: http://localhost:5174"
+    overmind start || (just be-dev & just fe-dev)
+
+# ── Database ───────────────────────────────────────────────────────────────────
+
+# Open a psql session via Docker
+db-shell:
+    docker compose exec db psql -U appuser -d appdb
+
+# Reset the database (drops volumes and re-applies migrations)
+db-reset: down-v up-d be-migrate
+    @echo "Database reset complete."
+
+# ── Utilities ──────────────────────────────────────────────────────────────────
+
+# Print configured environment files
+env:
+    @echo "=== backend/.env ===" && cat backend/.env 2>/dev/null || echo "(not found)"
+    @echo "=== frontend/.env ===" && cat frontend/.env 2>/dev/null || echo "(not found)"
+
+# Copy .env.example files to .env (safe — skips if already exists)
+env-init:
+    @[ -f backend/.env ] || cp backend/.env.example backend/.env && echo "Created backend/.env"
+    @[ -f frontend/.env ] || cp frontend/.env.example frontend/.env && echo "Created frontend/.env"
+
+# Clean Python bytecode and cache files
+clean:
+    find backend -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+    find backend -name "*.pyc" -delete 2>/dev/null || true
+
+# Clean everything including node_modules and build artefacts
+clean-all: clean
+    rm -rf frontend/node_modules frontend/dist

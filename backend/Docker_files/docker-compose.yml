@@ -3,19 +3,29 @@ services:
     build:
       context: ..
       dockerfile: Docker_files/Dockerfile
-    command: python /code/manage.py runserver 0.0.0.0:8000
     volumes:
-      - ..:/code
+      - ..:/app
     ports:
-      - 8000:8000
+      - "8000:8000"
     depends_on:
       - db
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings.dev
+      DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
+
   db:
     image: postgres:16
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - "POSTGRES_HOST_AUTH_METHOD=trust"
+      POSTGRES_DB: appdb
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppassword
+    ports:
+      - "5432:5432"
 
 volumes:
   postgres_data:
