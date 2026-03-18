@@ -56,7 +56,7 @@ be-install:
 
 # Run the Django dev server locally
 be-dev: be-makemigrations be-migrate
-    cd backend && uv run python manage.py runserver 0.0.0.0:8004
+    cd backend && uv run python manage.py runserver 0.0.0.0:8005
 
 # Apply database migrations
 be-migrate:
@@ -144,11 +144,31 @@ db-up:
         && echo "DB already running." \
         || (echo "Starting DB..." && docker compose up -d db && echo "Waiting for DB to be ready..." && sleep 3)
 
+# Start the Redis + Celery worker containers if not already running
+celery-up:
+    #!/usr/bin/env bash
+    _redis_up=$(docker compose ps --status running redis | grep -c redis || true)
+    _worker_up=$(docker compose ps --status running celery_worker | grep -c celery_worker || true)
+    if [[ "$_redis_up" -gt 0 && "$_worker_up" -gt 0 ]]; then
+        echo "Redis + Celery worker already running."
+    else
+        echo "Starting Redis + Celery worker..."
+        docker compose up -d redis celery_worker
+    fi
+
+# Run the Celery worker locally (outside Docker) — useful for debugging tasks
+celery-worker:
+    cd backend && uv run celery -A core worker --loglevel=info --concurrency=2
+
+# Tail Celery worker logs
+celery-logs:
+    docker compose logs -f celery_worker
+
 # Run backend and frontend dev servers concurrently (uses overmind if available)
-dev: db-up
+dev: db-up celery-up
     #!/usr/bin/env bash
     echo "Starting backend and frontend dev servers..."
-    echo "  Backend : http://localhost:8004"
+    echo "  Backend : http://localhost:8005"
     echo "  Frontend: http://localhost:5174"
     _pids=()
     _cleanup() {
