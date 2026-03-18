@@ -144,7 +144,7 @@ db-up:
         && echo "DB already running." \
         || (echo "Starting DB..." && docker compose up -d db && echo "Waiting for DB to be ready..." && sleep 3)
 
-# Start the Redis + Celery worker containers if not already running
+# Start the Redis + Celery worker + beat containers if not already running
 celery-up:
     #!/usr/bin/env bash
     _redis_up=$(docker compose ps --status running redis | grep -c redis || true)
@@ -152,13 +152,17 @@ celery-up:
     if [[ "$_redis_up" -gt 0 && "$_worker_up" -gt 0 ]]; then
         echo "Redis + Celery worker already running."
     else
-        echo "Starting Redis + Celery worker..."
-        docker compose up -d redis celery_worker
+        echo "Starting Redis + Celery worker + beat..."
+        docker compose up -d redis celery_worker celery_beat
     fi
 
 # Run the Celery worker locally (outside Docker) — useful for debugging tasks
 celery-worker:
     cd backend && uv run celery -A core worker --loglevel=info --concurrency=2
+
+# Run Flower monitoring UI locally (port 5555)
+flower:
+    cd backend && uv run celery -A core flower --port=5555
 
 # Tail Celery worker logs
 celery-logs:

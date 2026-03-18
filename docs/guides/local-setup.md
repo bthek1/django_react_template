@@ -60,6 +60,7 @@ docker compose exec backend python manage.py createsuperuser
 - Frontend: [http://localhost:5173](http://localhost:5173)
 - Backend API: [http://localhost:8000/api/health/](http://localhost:8000/api/health/)
 - Django admin: [http://localhost:8000/admin/](http://localhost:8000/admin/)
+- Flower (Celery monitoring): `just flower` then open [http://localhost:5555](http://localhost:5555)
 
 ---
 

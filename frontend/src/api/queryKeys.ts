@@ -4,4 +4,7 @@ export const queryKeys = {
     register: ["auth", "register"] as const,
   },
   health: ["health"] as const,
+  tasks: {
+    status: (taskId: string) => ["tasks", taskId] as const,
+  },
 } as const;
