@@ -83,7 +83,7 @@ frontend/
 │   │   ├── __root.tsx     Root layout
 │   │   ├── index.tsx      Home page
 │   │   ├── login.tsx      Login page
-│   │   └── demo.chart.tsx Plotly chart demo
+│   │   └── demo.chart.tsx ECharts + Recharts demo
 │   ├── schemas/           Zod validation schemas (one file per domain)
 │   │   └── auth.ts        Login and register schemas
 │   ├── store/             Zustand global state (one file per concern)

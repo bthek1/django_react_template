@@ -87,7 +87,7 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 
 ## Frontend (`frontend/`)
 
-**Stack:** React 18, TypeScript, Vite, TanStack Router, TanStack Query v5, Axios, Tailwind CSS v4, shadcn/ui, React Hook Form, Zod, Zustand, Vitest, date-fns, Plotly.js
+**Stack:** React 19, TypeScript ~6.0, Vite 8 (dev server on `:5174`), TanStack Router, TanStack Query v5, Axios, Tailwind CSS v4, shadcn/ui (`base-nova` style on `@base-ui/react`), React Hook Form, Zod, Zustand (+ Immer), Vitest + MSW, date-fns, ECharts + Recharts, react-markdown. ESLint 10.
 
 **Conventions:**
 - Functional components only — no class components
@@ -116,7 +116,12 @@ export function cn(...inputs: ClassValue[]) {
 ```
 - Tailwind CSS v4: CSS-first config via `@import "tailwindcss"` in `src/index.css` — no `tailwind.config.js`
 - shadcn/ui uses CSS variables for theming — do not override them with arbitrary Tailwind values
-- Install new shadcn/ui components with `npx shadcn@latest add <component>`
+- Install new shadcn/ui components with `npx shadcn@latest add <component>` (the `base-nova` style in `components.json` pulls Base UI versions)
+
+**shadcn + Base UI (`@base-ui/react`, not Radix):**
+- Components are built on Base UI primitives — there is **no Radix `<Slot>` and no `asChild`**. To render a primitive as another element, pass a `render` prop: `<Button render={<Link to="/x" />} />`, not `<Button asChild><Link/></Button>`.
+- **forwardRef gotcha:** Base UI components are React 19 components that take `ref` as a normal prop — they do **not** use `React.forwardRef`. Our `ui/` wrappers must spread `{...props}` (which carries `ref`) straight onto the primitive and must not re-introduce `forwardRef`. This is what lets RHF's `{...field}` (which includes a `ref`) bind to `<Input>` correctly.
+- **input/FormControl gotcha:** `FormControl` has no `Slot` to clone its child. It uses Base UI's `useRender` to merge ARIA/id props onto its child, so `FormControl` must wrap **exactly one** React element (e.g. `<FormControl><Input {...field} /></FormControl>`) — not a string, fragment, or multiple children.
 
 **Forms — React Hook Form + Zod:**
 ```ts
@@ -186,17 +191,19 @@ export const Route = createFileRoute('/users/$userId')({
 })
 ```
 
-**Testing — Vitest + React Testing Library:**
+**Testing — Vitest + React Testing Library + MSW:**
 - Run with `just fe-test` or `cd frontend && npm test`
-- Test environment: `jsdom` (configured in `vite.config.ts`)
-- Setup file: `src/test/setup.ts` (imports `@testing-library/jest-dom`)
+- Test environment: `happy-dom` (configured in `vite.config.ts`; `jsdom` is also installed as a fallback)
+- Setup file: `src/test/setup.ts` — imports `@testing-library/jest-dom`, starts the MSW server, and installs an in-memory `localStorage`/`sessionStorage` polyfill (Node ≥25 ships a stub `localStorage` that shadows the DOM env's)
+- HTTP-level mocking via MSW: default handlers in `src/test/handlers.ts`, shared server in `src/test/server.ts`. Override per-test with `server.use(...)`. Unhandled requests are bypassed, so module-level Axios mocks still work.
 - Co-locate tests with the component/hook they test: `Button.test.tsx` next to `Button.tsx`
-- Mock Axios at the module level — never make real HTTP calls in tests
+- Mock Axios at the module level, or intercept at the network level with MSW — never make real HTTP calls in tests
 - Zod schemas are tested as pure unit tests (no DOM)
 
 **Utilities:**
 - Date formatting: `date-fns` — always import via `src/lib/date.ts` wrappers, never call `date-fns` directly in components
-- Charts: `plotly.js-dist-min` — always via the `src/components/charts/PlotlyChart.tsx` wrapper, always lazy-loaded
+- Charts: **ECharts** via the lazy-loaded `src/components/charts/EChart.tsx` wrapper (`echarts` is heavy — keep it code-split with `lazy(() => import(...))`), or **Recharts** for lightweight composable SVG charts
+- Markdown / LLM output: render with the `src/components/Markdown.tsx` component (`react-markdown` + `remark-gfm`)
 
 **Env vars:** Prefix with `VITE_`. Access via `import.meta.env.VITE_*`.
 
@@ -259,7 +266,7 @@ Key commands:
 │   │   ├── api/               # Axios client, endpoint functions, queryKeys
 │   │   ├── components/
 │   │   │   ├── ui/            # shadcn/ui copy-paste components
-│   │   │   └── charts/        # PlotlyChart wrapper (lazy-loaded)
+│   │   │   └── charts/        # EChart wrapper (lazy-loaded); Recharts used inline
 │   │   ├── hooks/             # Custom hooks (business logic)
 │   │   ├── lib/               # Shared utilities: cn(), date wrappers
 │   │   ├── routes/            # TanStack Router file-based routes

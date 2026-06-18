@@ -95,10 +95,18 @@ These mirror the "General Rules" and "Absolute Don'ts" in the Copilot instructio
 
 ### Frontend essentials
 
-- Functional components only. All API calls go through `src/api/client.ts` (Axios + JWT interceptor).
-- Server state lives in TanStack Query; global UI flags in Zustand (`src/store/`, one file per concern).
+- React 19 + TypeScript ~6.0 + Vite 8 (dev server on `:5174`). Functional components only.
+- All API calls go through `src/api/client.ts` (Axios + JWT with silent 401 refresh).
+- Server state lives in TanStack Query; global UI flags in Zustand + Immer (`src/store/`, one file per concern) — never put server data in Zustand.
 - Forms use React Hook Form + Zod schemas (`src/schemas/`, one file per domain).
-- Styling is Tailwind v4 + shadcn/ui (add components with `npx shadcn@latest add <component>`).
+- Styling is Tailwind v4 (CSS-first, no config file) + shadcn/ui in the **`base-nova`** style, built on **`@base-ui/react`** primitives (NOT Radix). Add components with `npx shadcn@latest add <component>`.
+- Charts: ECharts via the lazy `src/components/charts/EChart.tsx` wrapper, or Recharts inline. Render Markdown/LLM output with `src/components/Markdown.tsx` (`react-markdown` + `remark-gfm`).
+- Tests: Vitest + Testing Library + MSW (`src/test/server.ts`, `handlers.ts`). `src/test/setup.ts` also polyfills `localStorage` because Node ≥25 ships a stub that shadows the DOM env's.
+
+**Two Base UI gotchas (carried over from the Radix → Base UI migration):**
+
+1. **No `asChild` / no `<Slot>` — use `render`.** Base UI primitives compose via a `render` prop, e.g. `<Button render={<Link to="/x" />} />` (never `<Button asChild><Link/></Button>`). Likewise `FormControl` has no `Slot`: it merges ARIA/id props onto its child via Base UI's `useRender`, so it must wrap **exactly one** React element (`<FormControl><Input {...field} /></FormControl>`).
+2. **No `forwardRef` — `ref` is a plain prop (React 19).** Base UI components don't use `React.forwardRef`; they accept `ref` as a normal prop. The `ui/` wrappers must spread `{...props}` straight onto the primitive and must not re-introduce `forwardRef`. This is what lets RHF's `{...field}` (which carries a `ref`) bind to `<Input>`.
 
 ---
 

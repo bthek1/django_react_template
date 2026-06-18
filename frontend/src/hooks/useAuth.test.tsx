@@ -94,7 +94,7 @@ describe('useRegister', () => {
     vi.mocked(register).mockResolvedValue(user as never)
 
     const { result } = renderHook(() => useRegister(), { wrapper })
-    result.current.mutate({ email: 'new@example.com', password: 'pass1234', confirm_password: 'pass1234' })
+    result.current.mutate({ email: 'new@example.com', password: 'pass1234' })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(result.current.data).toEqual(user)

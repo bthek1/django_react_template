@@ -42,13 +42,11 @@ describe('auth API', () => {
       const result = await register({
         email: 'a@b.com',
         password: 'pass',
-        confirm_password: 'pass',
       })
 
       expect(apiClient.post).toHaveBeenCalledWith('/api/accounts/register/', {
         email: 'a@b.com',
         password: 'pass',
-        confirm_password: 'pass',
       })
       expect(result).toEqual(user)
     })
