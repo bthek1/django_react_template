@@ -2,7 +2,7 @@
 
 A monorepo starter for a decoupled web application:
 
-- **`backend/`** — Django REST Framework API (Python 3.13, PostgreSQL)
+- **`backend/`** — Django REST Framework API (Python 3.13, PostgreSQL, Celery)
 - **`frontend/`** — React 18 SPA (TypeScript, Vite, TanStack Router, TanStack Query)
 
 ---
@@ -42,6 +42,10 @@ docker compose exec backend python manage.py migrate
 | [docs/standards/api-contracts.md](docs/standards/api-contracts.md) | All API endpoints, request/response shapes |
 | [docs/explanations/architecture.md](docs/explanations/architecture.md) | Monorepo structure and design decisions |
 | [docs/explanations/auth-flow.md](docs/explanations/auth-flow.md) | JWT auth flow end to end |
+| [docs/guides/celery_setup.md](docs/guides/celery_setup.md) | Celery + Redis async task setup |
+| [docs/plans/](docs/plans/) | Phased feature plans and ADRs (kept as a record) |
+
+**AI assistants:** [CLAUDE.md](CLAUDE.md) (Claude Code) and [.github/copilot-instructions.md](.github/copilot-instructions.md) (GitHub Copilot) describe the project conventions for AI tooling. Keep both in sync when conventions change.
 
 ---
 
@@ -79,6 +83,7 @@ docker compose exec backend python manage.py migrate
 | Backend framework | Django 5 + Django REST Framework |
 | Auth | JWT (`djangorestframework-simplejwt`) |
 | Database | PostgreSQL 16 |
+| Async tasks | Celery + Redis (`django-celery-results`, `django-celery-beat`) |
 | Dependency manager | [uv](https://github.com/astral-sh/uv) |
 | Frontend language | TypeScript |
 | Frontend bundler | Vite |

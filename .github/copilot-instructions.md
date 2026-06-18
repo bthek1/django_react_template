@@ -1,18 +1,25 @@
 # Copilot Instructions
 
+> This file describes the project conventions for GitHub Copilot. [`CLAUDE.md`](../CLAUDE.md)
+> is the Claude Code counterpart and covers the same conventions — keep the two in sync.
+
 ## Project Overview
-This is a monorepo containing a decoupled web application:
-- `backend/` — Django REST Framework API (Python) with PostgreSQL
+This is a **template** for new Django + DRF + React projects. It is a monorepo containing a
+decoupled web application:
+- `backend/` — Django REST Framework API (Python) with PostgreSQL and Celery
 - `frontend/` — React SPA built with Vite (TypeScript) with TanStack Query + TanStack Router, Tailwind CSS, shadcn/ui, React Hook Form + Zod, Zustand, Vitest
 
 The backend exposes only API endpoints. The frontend consumes them via HTTP.
 They are developed and deployed independently.
 
+Because this is a starter template, keep everything generic and reusable — avoid hardcoding
+project-specific names or data, and prefer documented conventions over one-off solutions.
+
 ---
 
 ## Backend (`backend/`)
 
-**Stack:** Python 3.13, Django 5.1+, Django REST Framework, PostgreSQL, psycopg3, JWT auth (simplejwt), django-environ, uv (package manager), ruff (lint/format), mypy (type checking), pytest + pytest-django
+**Stack:** Python 3.13, Django 5.1+, Django REST Framework, PostgreSQL, psycopg3, JWT auth (simplejwt), Celery + Redis (async tasks), django-environ, uv (package manager), ruff (lint/format), mypy (type checking), pytest + pytest-django
 
 **Conventions:**
 - All endpoints are prefixed with `/api/`
@@ -67,6 +74,14 @@ AUTH_USER_MODEL = "accounts.CustomUser"
 - Type check: `uv run mypy .`
 
 **API docs:** `drf-spectacular` is installed. Schema at `/api/schema/`, Swagger UI at `/api/schema/swagger-ui/`.
+
+**Async tasks — Celery:**
+- Broker is Redis; results are stored in Postgres via `django-celery-results` (`CELERY_RESULT_BACKEND = "django-db"`)
+- Periodic schedules are managed in Django admin via `django-celery-beat` (`DatabaseScheduler`)
+- The Celery app lives in `core/celery.py`; tasks live in `apps/<appname>/tasks.py` and are auto-discovered
+- Define tasks with `@shared_task` so they don't import the app instance directly
+- Run locally with `just celery-up` (worker + beat via Docker) or `just celery-worker` (worker outside Docker); `just flower` starts the Flower monitoring UI on port 5555
+- Full setup and the DRF dispatch/poll/revoke pattern: `docs/guides/celery_setup.md`
 
 ---
 

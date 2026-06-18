@@ -31,10 +31,18 @@ docs/
 - `docs/standards/api-contracts.md` — API endpoint definitions and request/response shapes
 - `docs/guides/local-setup.md` — Local development environment setup
 - `docs/guides/onboarding.md` — Onboarding guide for new developers
+- `docs/guides/celery_setup.md` — Celery + Redis async task setup
 - `docs/plans/accounts-email-as-username.md` — Plan: custom user with email as username
 - `docs/plans/frontend-upgrade.md` — Plan: frontend stack upgrade
+- `docs/plans/frontend-ui-foundation.md` — Plan: frontend UI foundation
+- `docs/plans/backend-celery.md` — Plan: Celery backend integration
+- `docs/plans/celery-full-implementation.md` — Plan: full Celery implementation
+- `docs/plans/claude-code-setup.md` — Plan: Claude Code / AI assistant setup
 - `docs/explanations/architecture.md` — Overall system architecture
 - `docs/explanations/auth-flow.md` — JWT authentication flow
+
+The repo also has AI-assistant guidance at the root: `CLAUDE.md` (Claude Code) and
+`.github/copilot-instructions.md` (Copilot). When docs conventions change, keep both in sync.
 
 ## Rules
 
