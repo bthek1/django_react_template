@@ -17,7 +17,12 @@ The backend currently has no async task queue. Adding Celery enables offloading 
 
 ## Phases
 
+Every phase is stable: the backend still boots and `just be-test` still passes at the end of
+each one, whether or not the following phases have landed.
+
 ### Phase 1 — Dependencies & Core Configuration
+
+**Outcome:** Django starts with a configured Celery app attached; no worker required yet.
 
 - [x] Add `celery[redis]` to `backend/pyproject.toml` dependencies
 - [x] Create `backend/core/celery.py` — Celery app instance, auto-discovers tasks
@@ -30,7 +35,14 @@ The backend currently has no async task queue. Adding Celery enables offloading 
   - `CELERY_RESULT_SERIALIZER`
   - `CELERY_TIMEZONE` (mirrors `TIME_ZONE`)
 
+**Validation:**
+- [x] `just be-test` passes — Django still boots with `core.celery` imported at startup
+- [x] Manual: `just be-shell` → `from core import celery_app; celery_app.conf.broker_url`
+      returns the configured URL
+
 ### Phase 2 — Docker Services
+
+**Outcome:** Redis and a Celery worker run under Docker and the worker connects to the broker.
 
 - [x] Add `redis` service to `docker-compose.yml` (image `redis:7-alpine`, port `6379`)
 - [x] Add `celery_worker` service to `docker-compose.yml`:
@@ -42,7 +54,15 @@ The backend currently has no async task queue. Adding Celery enables offloading 
   - Command: `celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler`
   - Gated behind a comment — enable when `django-celery-beat` is added
 
+**Validation:**
+- [x] `docker compose config` parses with no errors
+- [x] Manual: `docker compose up -d redis celery_worker`, then
+      `docker compose logs celery_worker` shows `celery@… ready.`
+
 ### Phase 3 — `just dev` Integration
+
+**Outcome:** `just dev` brings up the full local stack — Redis and the worker included —
+in one command.
 
 - [x] Add `celery-up` recipe to `justfile`:
   ```just
@@ -55,14 +75,32 @@ The backend currently has no async task queue. Adding Celery enables offloading 
 - [x] Add `celery-logs` convenience recipe: `just logs-svc celery_worker`
 - [x] Add `celery-worker` recipe to run the worker locally (outside Docker) for debugging
 
+**Validation:**
+- [x] `just --list` shows `celery-up`, `celery-logs`, `celery-worker`
+- [x] Manual: `just dev` from a clean state starts Redis + worker + backend + frontend, and
+      re-running it reports "Redis already running." instead of starting a second container
+
 ### Phase 4 — Example Task (Smoke Test)
+
+**Outcome:** A task ships end to end — defined, queued, executed — with a test that fails if
+the wiring breaks.
 
 - [ ] Create `backend/apps/pages/tasks.py` with a trivial `debug_task` that logs its request
 - [ ] Write a test in `backend/apps/pages/tests.py` using `celery.contrib.pytest` fixtures (`celery_app`, `celery_worker`)
 
+**Validation:**
+- [ ] `backend/apps/pages/tests.py::test_debug_task_runs` — calls the task directly and asserts
+      its return value
+- [ ] `backend/apps/pages/tests.py::test_debug_task_delay_eager` — `.delay()` under
+      `CELERY_TASK_ALWAYS_EAGER` resolves successfully, proving app discovery works
+- [ ] `just be-test` passes
+- [ ] Manual: the five broker round-trip steps in **Testing → Manual verification** below
+
 ---
 
 ## Testing
+
+Cross-cutting strategy. Per-phase checks live in the **Validation** blocks above.
 
 **Unit tests:**
 - Task functions are unit-tested directly (call the function, not `.delay()`)
@@ -90,3 +128,7 @@ The backend currently has no async task queue. Adding Celery enables offloading 
 - **Worker concurrency:** Defaults to CPU count. For dev, `--concurrency=2` keeps resource usage low.
 - **Result backend:** Redis is used for results too, keeping things simple. For production, consider a dedicated backend or disabling results if tasks are fire-and-forget.
 - **No Flower in Phase 1:** Flower (Celery monitoring UI) can be added as a separate Docker service later (`just flower-up`).
+
+---
+
+> **On completion:** set `Status: Complete` and move this file to `docs/plans/completed/`.

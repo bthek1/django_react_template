@@ -72,3 +72,7 @@ setup are part of the product, not an afterthought. Two gaps existed:
   prompts; downstream projects with multiple contributors or CI may want to tighten the allowlist.
 - `.claude/settings.json` is committed (project-level). Personal overrides belong in
   `.claude/settings.local.json`, which should stay out of version control.
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.

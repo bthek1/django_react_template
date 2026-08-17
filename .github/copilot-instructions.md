@@ -282,6 +282,9 @@ Key commands:
 │   ├── standards/             # Coding standards, style guides, conventions, API contracts
 │   ├── guides/                # How-to guides, onboarding, local setup, deployment
 │   ├── plans/                 # Feature plans, ADRs, roadmaps (phased, with testing)
+│   │   ├── future/            # Future project-state docs (sliced into plans)
+│   │   ├── in-progress/       # Active plans (Draft | In Progress)
+│   │   └── completed/         # Finished plans (kept as a record)
 │   └── explanations/          # Concept explanations, design rationale, background context
 ├── justfile                   # Task runner (use `just --list`)
 ├── docker-compose.yml
@@ -333,14 +336,15 @@ The `docs/` folder is the single source of truth for project knowledge. It is ke
 **Structure:**
 - `docs/standards/` — Coding standards, style guides, naming conventions, API contracts
 - `docs/guides/` — Step-by-step how-to guides, onboarding, local setup, deployment
-- `docs/plans/` — Feature plans, ADRs, roadmaps, spike notes
+- `docs/plans/` — Feature plans, ADRs, roadmaps, spike notes; split into `future/`,
+  `in-progress/`, and `completed/` (see [Planning Rules](#planning-rules-docsplans))
 - `docs/explanations/` — Concept explanations, design rationale, background context
 
 **Rules:**
 - When a feature, API endpoint, or architectural pattern is added or changed, update the relevant doc in `docs/` as part of the same change
 - New backend apps or frontend modules should have a corresponding explanation or guide in `docs/`
 - API contract changes (new endpoints, modified request/response shapes) must be reflected in `docs/standards/`
-- Architecture or design decisions must be recorded as an ADR in `docs/plans/`
+- Architecture or design decisions must be recorded as an ADR in `docs/plans/completed/`
 - Docs are written for the next developer — assume no prior context
 
 ---
@@ -349,7 +353,29 @@ The `docs/` folder is the single source of truth for project knowledge. It is ke
 
 Every non-trivial feature or change must have a plan file before implementation begins.
 
-**File naming:** `docs/plans/<feature-name>.md`
+**Folders — a plan's folder must always match its status:**
+
+```
+docs/plans/
+├── future/        Future project-state docs — the target state of a subsystem
+├── in-progress/   Active plans (Status: Draft | In Progress)
+└── completed/     Finished plans (Status: Complete) — kept as a record
+```
+
+```
+future/<area>.md  ──sliced into──▶  in-progress/<feature>.md  ──when done──▶  completed/<feature>.md
+```
+
+- **`future/`** holds *desired end-state* documents, not task lists: what a subsystem should
+  eventually look like, why, the gap versus today, and a rough list of increments. They are
+  long-lived and revised over time.
+- When work starts on one of those increments, carve it into a phased plan in
+  **`in-progress/`** and link back to the `future/` doc. One increment per plan.
+- When every phase is done and `Status: Complete`, **move the file to `completed/`**:
+  `git mv docs/plans/in-progress/<f>.md docs/plans/completed/<f>.md`.
+- Plans that don't come from a `future/` doc start directly in `in-progress/`.
+
+**File naming:** `docs/plans/in-progress/<feature-name>.md`
 
 **Required plan structure:**
 ```markdown
@@ -368,27 +394,56 @@ Context and motivation. What problem does this solve?
 
 ## Phases
 
+Every phase is **stable**: it leaves the repo in a working, shippable state — migrations
+applied, existing tests still green, no half-wired code paths — and carries its own tests
+that prove it landed.
+
 ### Phase 1 — <Name>
+**Outcome:** what demonstrably works once this phase lands.
+
 - [ ] Task 1
 - [ ] Task 2
 
+**Validation:**
+- [ ] `backend/apps/<app>/tests/test_<x>.py::test_<case>` — what it proves
+- [ ] `just be-test` and `just fe-test` pass
+- [ ] Manual: <steps to see it working>
+
 ### Phase 2 — <Name>
+**Outcome:** …
+
 - [ ] Task 3
 
+**Validation:**
+- [ ] …
+
 ## Testing
-- Unit tests: what to cover
-- Integration tests: what to cover
-- Manual verification steps
+Cross-cutting strategy only — fixtures/factories introduced, MSW handlers added, coverage
+gaps, and the end-to-end manual walkthrough of the finished feature. Per-phase checks live
+in the phases above.
 
 ## Risks & Notes
 Any known risks, open questions, or decisions deferred.
+
+---
+
+> **On completion:** set `Status: Complete` and move this file to `docs/plans/completed/`.
 ```
 
 **Rules:**
 - Plans are always phased — break work into discrete, independently deliverable phases
-- Every plan must include a **Testing** section covering unit tests, integration tests, and manual steps
+- **Phases must be stable** — each one ends with the repo working: migrations applied, the
+  existing suites green, nothing half-wired. If a phase can only be verified after a later
+  phase lands, it is not a phase; merge it into the one that completes it
+- **Every phase must carry its own validation** — name the tests (file + test name) and manual
+  steps that prove it landed. Progress is measured by those checks passing, not by tasks
+  looking finished
+- Every plan must include a plan-level **Testing** section for cross-cutting strategy and the
+  end-to-end walkthrough — it does not replace per-phase validation
+- Every plan must end with the **On completion** note shown in the template above
 - Do not start implementation without a plan for any feature that touches more than one file
-- Update plan status (`Draft → In Progress → Complete`) as work progresses
+- Update plan status (`Draft → In Progress → Complete`) as work progresses, then `git mv` the
+  file from `in-progress/` to `completed/`
 - Completed plans are kept (not deleted) as a record of decisions made
 
 ---

@@ -144,3 +144,7 @@ The current frontend has a minimal route setup and basic shadcn/ui components bu
 - **Flash of unstyled theme (FOUT):** Apply the `dark` class synchronously in an inline `<script>` before React hydrates if SSR is ever added; for now, the `useTheme` hook in `main.tsx` is sufficient.
 - **Sidebar nav items config:** Keep nav items as a typed array in `src/components/layout/navItems.ts` so they can be conditionally filtered by role/permission later without touching the component.
 - **Mobile drawer:** Use shadcn/ui `Sheet` component for the mobile sidebar off-canvas drawer — avoids building a custom focus trap.
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.

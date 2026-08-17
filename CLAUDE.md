@@ -34,7 +34,10 @@ the next project (and the next developer) can build on a predictable base.
 | API endpoints & request/response shapes | [`docs/standards/api-contracts.md`](docs/standards/api-contracts.md) |
 | Local dev setup | [`docs/guides/local-setup.md`](docs/guides/local-setup.md) |
 | Celery / async tasks | [`docs/guides/celery_setup.md`](docs/guides/celery_setup.md) |
-| Feature plans (phased) | [`docs/plans/`](docs/plans/) |
+| Plan lifecycle & template | [`docs/plans/README.md`](docs/plans/README.md) |
+| Active feature plans | [`docs/plans/in-progress/`](docs/plans/in-progress/) |
+| Finished plans (record) | [`docs/plans/completed/`](docs/plans/completed/) |
+| Future project-state docs | [`docs/plans/future/`](docs/plans/future/) |
 
 ---
 
@@ -76,9 +79,22 @@ These mirror the "General Rules" and "Absolute Don'ts" in the Copilot instructio
 
 - **Docs travel with code.** A code change that affects behaviour, endpoints, or setup must
   update the relevant file under `docs/`. Add new endpoints to `docs/standards/api-contracts.md`.
-- **Plans are phased.** Any feature touching more than one file gets a plan under `docs/plans/`
-  first — phased, with a Testing section. Update its `Status` (`Draft → In Progress → Complete`)
-  as work progresses. Completed plans are kept as a record, not deleted.
+- **Phases are stable and self-validating.** Each phase leaves the repo in a working, shippable
+  state (migrations applied, existing suites green, nothing half-wired) and carries a
+  **Validation** block naming the tests — file + test name — and manual steps that prove it
+  landed. Progress is measured by those checks passing, not by tasks looking finished. If a
+  step can only be verified once a later phase lands, it isn't a phase — fold it into the one
+  that completes it.
+- **Plans are phased and live in a lifecycle folder.** Any feature touching more than one file
+  gets a plan in `docs/plans/in-progress/` first — phased, with a Testing section, and ending
+  with the note *"On completion: set `Status: Complete` and move this file to
+  `docs/plans/completed/`."* Update its `Status` (`Draft → In Progress → Complete`) as work
+  progresses, then `git mv` it to `docs/plans/completed/`. The plan's folder must always match
+  its status. Completed plans are kept as a record, not deleted.
+- **`docs/plans/future/` holds target-state docs, not tasks.** They describe where a subsystem
+  is heading. Slice one into an incremental, phased plan in `docs/plans/in-progress/` when work
+  on that increment starts, and link back to the future doc. See
+  [`docs/plans/README.md`](docs/plans/README.md).
 - **Never commit `.env` files.** `.env.example` is the source of truth for required vars.
 - **Backend ↔ frontend communicate only via the API contract** — never mix their concerns.
 - **Ask before destructive or remote actions.** Do not `git commit`, `git push`, `git reset --hard`,

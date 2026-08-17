@@ -172,3 +172,7 @@ This plan covers the steps to migrate the current Django project into the full m
 - [x] No hardcoded secrets anywhere — all config via env vars
 - [x] All migrations are clean and tracked in version control
 - [x] `docs/` is populated with at minimum: setup guide, API contract, architecture explanation
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.

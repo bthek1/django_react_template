@@ -89,3 +89,7 @@ over HTTP) is unchanged — this is a tooling/library modernization only.
 - **ECharts is heavy** (~1.1 MB) — always import `EChart` lazily so it stays out of the initial chunk.
 - **Node ≥25 `localStorage` stub** — the test polyfill is required; the harmless
   `--localstorage-file ... without a valid path` warning during tests comes from Node, not the repo.
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.

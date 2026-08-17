@@ -24,6 +24,9 @@ docs/
 ├── standards/      # Coding standards, style guides, naming conventions, API contracts
 ├── guides/         # Step-by-step how-to guides, onboarding, local setup, deployment
 ├── plans/          # Feature plans, ADRs, roadmaps (phased, with testing sections)
+│   ├── future/        Future project-state docs (sliced into incremental plans)
+│   ├── in-progress/   Active plans (Draft | In Progress)
+│   └── completed/     Finished plans (kept as a record)
 └── explanations/   # Concept explanations, design rationale, background context
 ```
 
@@ -32,12 +35,16 @@ docs/
 - `docs/guides/local-setup.md` — Local development environment setup
 - `docs/guides/onboarding.md` — Onboarding guide for new developers
 - `docs/guides/celery_setup.md` — Celery + Redis async task setup
-- `docs/plans/accounts-email-as-username.md` — Plan: custom user with email as username
-- `docs/plans/frontend-upgrade.md` — Plan: frontend stack upgrade
-- `docs/plans/frontend-ui-foundation.md` — Plan: frontend UI foundation
-- `docs/plans/backend-celery.md` — Plan: Celery backend integration
-- `docs/plans/celery-full-implementation.md` — Plan: full Celery implementation
-- `docs/plans/claude-code-setup.md` — Plan: Claude Code / AI assistant setup
+- `docs/plans/README.md` — Plan lifecycle (`future → in-progress → completed`) and template
+- `docs/plans/future/README.md` — How to write a future project-state doc
+- `docs/plans/in-progress/backend-celery.md` — Plan: Celery backend integration
+- `docs/plans/completed/accounts-email-as-username.md` — Plan: custom user with email as username
+- `docs/plans/completed/frontend-upgrade.md` — Plan: frontend stack upgrade
+- `docs/plans/completed/frontend-ui-foundation.md` — Plan: frontend UI foundation
+- `docs/plans/completed/frontend-stack-modernization.md` — Plan: frontend stack modernization
+- `docs/plans/completed/celery-full-implementation.md` — Plan: full Celery implementation
+- `docs/plans/completed/claude-code-setup.md` — Plan: Claude Code / AI assistant setup
+- `docs/plans/completed/monorepo-implementation.md` — Plan: original monorepo migration
 - `docs/explanations/architecture.md` — Overall system architecture
 - `docs/explanations/auth-flow.md` — JWT authentication flow
 
@@ -49,9 +56,12 @@ The repo also has AI-assistant guidance at the root: `CLAUDE.md` (Claude Code) a
 **When to update docs:**
 - A new backend endpoint is added or changed → update `docs/standards/api-contracts.md`
 - A new Django app or frontend module is added → add an explanation or guide in `docs/`
-- An architectural or design decision is made → record an ADR in `docs/plans/`
+- An architectural or design decision is made → record an ADR in `docs/plans/completed/`
 - Local setup steps change → update `docs/guides/local-setup.md`
-- A feature plan is started, progressed, or completed → update the plan's status field
+- A feature plan is started, progressed, or completed → update the plan's status field, and
+  `git mv` it from `docs/plans/in-progress/` to `docs/plans/completed/` once it is `Complete`
+- A future project-state doc gains a slice worth building → carve it into a phased plan in
+  `docs/plans/in-progress/` that links back to the `docs/plans/future/` doc
 
 **Syncing with code:**
 - Docs are a source of truth — they must stay in sync with the codebase
@@ -60,7 +70,8 @@ The repo also has AI-assistant guidance at the root: `CLAUDE.md` (Claude Code) a
 
 ## Required Plan Structure
 
-Every non-trivial feature plan in `docs/plans/` must follow this template:
+Every non-trivial feature plan in `docs/plans/in-progress/` must follow this template
+(full lifecycle in [`docs/plans/README.md`](../../docs/plans/README.md)):
 
 ```markdown
 # Plan: <Feature Name>
@@ -78,28 +89,64 @@ Context and motivation. What problem does this solve?
 
 ## Phases
 
+Every phase is **stable**: it leaves the repo in a working, shippable state — migrations
+applied, existing tests still green, no half-wired code paths — and carries its own tests
+that prove it landed.
+
 ### Phase 1 — <Name>
+**Outcome:** what demonstrably works once this phase lands.
+
 - [ ] Task 1
 - [ ] Task 2
 
+**Validation:**
+- [ ] `backend/apps/<app>/tests/test_<x>.py::test_<case>` — what it proves
+- [ ] `just be-test` and `just fe-test` pass
+- [ ] Manual: <steps to see it working>
+
 ### Phase 2 — <Name>
+**Outcome:** …
+
 - [ ] Task 3
 
+**Validation:**
+- [ ] …
+
 ## Testing
-- Unit tests: what to cover
-- Integration tests: what to cover
-- Manual verification steps
+Cross-cutting strategy only — fixtures/factories introduced, MSW handlers added, coverage
+gaps, and the end-to-end manual walkthrough of the finished feature. Per-phase checks live
+in the phases above.
 
 ## Risks & Notes
 Any known risks, open questions, or decisions deferred.
+
+---
+
+> **On completion:** set `Status: Complete` and move this file to `docs/plans/completed/`.
 ```
 
 **Plan rules:**
 - Plans are always phased — break work into discrete, independently deliverable phases
-- Every plan must have a **Testing** section covering unit, integration, and manual steps
+- **Phases must be stable** — each ends with the repo working: migrations applied, existing
+  suites green, nothing half-wired. A step that can only be verified after a later phase is
+  not its own phase; merge it into the one that completes it
+- **Every phase must carry its own validation** — name the tests (file + test name) and manual
+  steps that prove it landed. Progress is measured by those checks passing
+- Every plan must have a plan-level **Testing** section for cross-cutting strategy and the
+  end-to-end walkthrough — it does not replace per-phase validation
+- Every plan must end with the **On completion** note shown in the template above
 - Do not start implementation without a plan for features touching more than one file
-- Update plan status (`Draft → In Progress → Complete`) as work progresses
+- Update plan status (`Draft → In Progress → Complete`) as work progresses, then move the file
+  from `in-progress/` to `completed/`
+- A plan's folder must match its status — a `Complete` plan does not stay in `in-progress/`
 - Completed plans are kept (not deleted) as a record of decisions made
+
+## Future Project-State Docs (`docs/plans/future/`)
+
+`future/` files describe the *target state* of a subsystem — not tasks, not phases. Each should
+cover: **Target state**, **Why**, **Gap** (today vs. target), and **Increments** (slices that
+could become plans). They are long-lived, revised as thinking evolves, and only move to
+`completed/` once their target state is fully reached.
 
 ## API Contract Format
 

@@ -162,3 +162,7 @@ plotly.js-dist-min
 - **RHF vs TanStack Form** — React Hook Form chosen for maturity and ecosystem (resolvers, DevTools, shadcn/ui integration). Revisit if TanStack Form reaches stable v1.
 - **Zustand vs Jotai** — Zustand chosen for its slice pattern which maps cleanly to the domain structure already used in the backend. Jotai is fine if atomic state becomes preferable in a future iteration.
 - Phases 1–3 can be done in parallel by different developers. Phases 4–6 depend only on Phase 1 being complete (Vitest needs Vite config updated).
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.

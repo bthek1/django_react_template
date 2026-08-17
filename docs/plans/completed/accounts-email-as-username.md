@@ -460,3 +460,7 @@ If rollback is needed before deployment:
 - [x] `GET /api/accounts/me/` returns user data without `username` field.
 - [x] All new pytest tests pass.
 - [x] No `username` column exists in the `accounts_customuser` table.
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.

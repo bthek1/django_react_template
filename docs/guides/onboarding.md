@@ -14,6 +14,9 @@ Welcome to the project. This guide gives you everything you need to understand t
 │   ├── standards/    API contracts, coding conventions
 │   ├── guides/       How-to guides (setup, deployment)
 │   ├── plans/        Architecture decisions, roadmaps
+│   │   ├── future/       Target-state docs, sliced into plans
+│   │   ├── in-progress/  Active phased plans
+│   │   └── completed/    Finished plans (kept as a record)
 │   └── explanations/ Concept backgrounds, design rationale
 └── docker-compose.yml  Local dev orchestration
 ```

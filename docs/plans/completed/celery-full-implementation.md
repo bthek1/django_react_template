@@ -137,3 +137,7 @@ Add task dispatch, status polling, and revoke endpoints to `backend/apps/pages/`
 - **`celery_beat` and `celery_worker` must not both read from the same beat schedule simultaneously** — the `celery_beat` service should be the only process running beat.
 - **Frontend `useTaskPoller` should use the Axios client** from `src/api/client.ts` for JWT handling, not raw `fetch`, once authentication is required on task endpoints.
 - **Flower is for local dev only** — do not expose port 5555 in production without authentication.
+
+---
+
+> **Completed** — moved to `docs/plans/completed/` and kept as a record.
