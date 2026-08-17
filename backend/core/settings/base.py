@@ -79,7 +79,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ── Celery ─────────────────────────────────────────────────────────────────────
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+# docker-compose publishes Redis on host port 6380 (6380:6379) to avoid
+# clashing with a locally installed Redis. Inside Compose, use redis://redis:6379/0.
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6380/0")
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_RESULT_EXTENDED = True  # stores args, kwargs, worker, runtime
 CELERY_ACCEPT_CONTENT = ["json"]

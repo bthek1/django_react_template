@@ -37,8 +37,8 @@ docs/
 - `docs/guides/celery_setup.md` — Celery + Redis async task setup
 - `docs/plans/README.md` — Plan lifecycle (`future → in-progress → completed`) and template
 - `docs/plans/future/README.md` — How to write a future project-state doc
-- `docs/plans/in-progress/backend-celery.md` — Plan: Celery backend integration
 - `docs/plans/completed/accounts-email-as-username.md` — Plan: custom user with email as username
+- `docs/plans/completed/backend-celery.md` — Plan: Celery backend integration
 - `docs/plans/completed/frontend-upgrade.md` — Plan: frontend stack upgrade
 - `docs/plans/completed/frontend-ui-foundation.md` — Plan: frontend UI foundation
 - `docs/plans/completed/frontend-stack-modernization.md` — Plan: frontend stack modernization

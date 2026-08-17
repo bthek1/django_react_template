@@ -7,6 +7,17 @@ from celery.exceptions import SoftTimeLimitExceeded
 logger = logging.getLogger(__name__)
 
 
+@shared_task(bind=True)
+def debug_task(self) -> str:  # type: ignore[override]
+    """Log the task request — the canonical smoke test that Celery is wired up.
+
+    Returns the task id so callers (and tests) can assert the task actually ran
+    through Celery rather than as a plain function call.
+    """
+    logger.info("debug_task request: %r", self.request)
+    return f"debug_task ran: task_id={self.request.id}"
+
+
 @shared_task
 def add(x: int, y: int) -> int:
     """Simple arithmetic task — used for smoke-testing Celery in dev/test."""

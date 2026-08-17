@@ -1,6 +1,6 @@
 # Plan: Backend Celery Integration (Docker)
 
-**Status:** In Progress
+**Status:** Complete
 **Date:** 2026-03-18
 
 ---
@@ -85,16 +85,21 @@ in one command.
 **Outcome:** A task ships end to end — defined, queued, executed — with a test that fails if
 the wiring breaks.
 
-- [ ] Create `backend/apps/pages/tasks.py` with a trivial `debug_task` that logs its request
-- [ ] Write a test in `backend/apps/pages/tests.py` using `celery.contrib.pytest` fixtures (`celery_app`, `celery_worker`)
+- [x] Create `backend/apps/pages/tasks.py` with a trivial `debug_task` that logs its request
+- [x] Write eager tests in `backend/apps/pages/tests.py` (`TestDebugTask`). Ran under
+      `CELERY_TASK_ALWAYS_EAGER` rather than the `celery_worker` fixture — the fixture spins up
+      a live broker, which the suite must not require. Broker round-trip is covered manually below.
 
 **Validation:**
-- [ ] `backend/apps/pages/tests.py::test_debug_task_runs` — calls the task directly and asserts
-      its return value
-- [ ] `backend/apps/pages/tests.py::test_debug_task_delay_eager` — `.delay()` under
-      `CELERY_TASK_ALWAYS_EAGER` resolves successfully, proving app discovery works
-- [ ] `just be-test` passes
-- [ ] Manual: the five broker round-trip steps in **Testing → Manual verification** below
+- [x] `backend/apps/pages/tests.py::TestDebugTask::test_debug_task_runs` — runs the task and
+      asserts its return value
+- [x] `backend/apps/pages/tests.py::TestDebugTask::test_debug_task_delay_eager` — `.delay()` under
+      `CELERY_TASK_ALWAYS_EAGER` resolves successfully, and `apps.pages.tasks.debug_task` is
+      registered on the app, proving autodiscovery works
+- [x] `just be-test` passes — 45 tests
+- [x] Manual: the five broker round-trip steps in **Testing → Manual verification** below —
+      worker logs `Task apps.pages.tasks.debug_task[…] succeeded`, result readable from
+      `TaskResult` via the `django-db` backend
 
 ---
 
@@ -123,10 +128,17 @@ Cross-cutting strategy. Per-phase checks live in the **Validation** blocks above
 
 ## Risks & Notes
 
-- **Broker URL env var:** `CELERY_BROKER_URL` must be set in `.env.example` (and `.env`). Inside Docker, use `redis://redis:6379/0`; locally, use `redis://localhost:6379/0`.
+- **Broker URL env var:** `CELERY_BROKER_URL` is set in `backend/.env.example`. Inside Docker, use
+  `redis://redis:6379/0`; locally, use `redis://localhost:6380/0` — Compose publishes Redis on host
+  port **6380** (`6380:6379`) so it can't clash with a locally installed Redis. Phase 4 caught the
+  `base.py` default still pointing at `localhost:6379`, which made every local `.delay()` fail with
+  `Connection refused`; fixed.
 - **`celery_beat` deferred:** `django-celery-beat` requires a migration. It's included in Phase 2 as a commented service — activate only when periodic tasks are needed.
 - **Worker concurrency:** Defaults to CPU count. For dev, `--concurrency=2` keeps resource usage low.
-- **Result backend:** Redis is used for results too, keeping things simple. For production, consider a dedicated backend or disabling results if tasks are fire-and-forget.
+- **Result backend:** `django-db` (via `django-celery-results`), so results are queryable through
+  the ORM and visible in the admin. Phase 4 caught `docker-compose.yml` overriding
+  `CELERY_RESULT_BACKEND` to Redis for the worker and beat services — results were written to Redis
+  while the task-status endpoint read from the DB. The overrides were removed; both now use `django-db`.
 - **No Flower in Phase 1:** Flower (Celery monitoring UI) can be added as a separate Docker service later (`just flower-up`).
 
 ---

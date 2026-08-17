@@ -2,7 +2,7 @@ import pytest
 from celery import Celery
 from django.urls import reverse
 
-from apps.pages.tasks import add
+from apps.pages.tasks import add, debug_task
 from core.celery import app as celery_app
 
 
@@ -40,6 +40,23 @@ class TestCeleryConfig:
         from django.conf import settings
 
         assert getattr(settings, "CELERY_TASK_ALWAYS_EAGER", False) is True
+
+
+class TestDebugTask:
+    """End-to-end smoke test: task defined, discovered, queued, executed."""
+
+    def test_debug_task_runs(self):
+        # Called through .apply() so self.request is populated by Celery.
+        result = debug_task.apply()
+        assert result.successful()
+        assert result.result.startswith("debug_task ran: task_id=")
+
+    def test_debug_task_delay_eager(self):
+        # .delay() under CELERY_TASK_ALWAYS_EAGER proves the shared_task was
+        # registered on the app via autodiscover_tasks().
+        result = debug_task.delay()
+        assert result.get().startswith("debug_task ran: task_id=")
+        assert "apps.pages.tasks.debug_task" in celery_app.tasks
 
 
 class TestAddTask:
@@ -105,10 +122,10 @@ class TestProcessDataTask:
         mocker.patch.object(
             tasks_module.time, "sleep", side_effect=RuntimeError("boom")
         )
+        from apps.pages.tasks import process_data
+
         # In eager mode, self.retry() raises celery.exceptions.Retry
         with pytest.raises(Retry):
-            from apps.pages.tasks import process_data
-
             process_data.apply(args=[{"fail": True}], throw=True)
 
 

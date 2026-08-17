@@ -48,7 +48,9 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      # Host 6380 → container 6379, so a locally installed Redis on 6379
+      # doesn't clash. Inside Compose, services still use redis:6379.
+      - "6380:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
@@ -89,7 +91,7 @@ INSTALLED_APPS = [
 ]
 
 # Broker & backend
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6380/0")
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_RESULT_EXTENDED = True          # stores args, kwargs, runtime, worker
 

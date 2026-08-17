@@ -51,7 +51,8 @@ services:
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
       CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      # Results go to the Django DB backend (see CELERY_RESULT_BACKEND in
+      # core/settings/base.py) so the task-status API and admin can read them.
 
   celery_beat:
     build: ./backend
@@ -67,7 +68,8 @@ services:
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
       CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      # Results go to the Django DB backend (see CELERY_RESULT_BACKEND in
+      # core/settings/base.py) so the task-status API and admin can read them.
 
   frontend:
     build: ./frontend
