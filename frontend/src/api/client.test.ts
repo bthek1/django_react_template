@@ -28,9 +28,14 @@ type ResponseError = (err: unknown) => Promise<unknown>
 let requestFulfilled: RequestHandler
 let responseFulfilled: ResponseSuccess
 let responseRejected: ResponseError
+// Vitest 5 clears mock calls before each test (clearMocks), so capture counts here.
+let requestUseCount: number
+let responseUseCount: number
 
 beforeAll(async () => {
   await import('./client')
+  requestUseCount = mockRequest.use.mock.calls.length
+  responseUseCount = mockResponse.use.mock.calls.length
   requestFulfilled = mockRequest.use.mock.calls[0][0] as RequestHandler
   ;[responseFulfilled, responseRejected] = mockResponse.use.mock.calls[0] as [ResponseSuccess, ResponseError]
 })
@@ -41,11 +46,11 @@ afterEach(() => {
 
 describe('apiClient interceptors', () => {
   it('registers exactly one request interceptor', () => {
-    expect(mockRequest.use).toHaveBeenCalledTimes(1)
+    expect(requestUseCount).toBe(1)
   })
 
   it('registers exactly one response interceptor', () => {
-    expect(mockResponse.use).toHaveBeenCalledTimes(1)
+    expect(responseUseCount).toBe(1)
   })
 
   it('request interceptor attaches Bearer token when access_token is present', () => {

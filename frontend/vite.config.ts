@@ -12,10 +12,10 @@ export default defineConfig({
     tailwindcss(),
   ],
   // Read .env from the repo root, shared with the backend.
-  envDir: resolve(__dirname, ".."),
+  envDir: resolve(import.meta.dirname, ".."),
   resolve: {
     alias: {
-      "@": resolve(__dirname, "./src"),
+      "@": resolve(import.meta.dirname, "./src"),
     },
   },
   server: {

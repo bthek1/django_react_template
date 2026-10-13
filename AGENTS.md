@@ -148,8 +148,9 @@ hand-written contract.
 
 **Stack:** React 19, TypeScript ~6.0 (strict), Vite 8, TanStack Router, TanStack Query v5, Axios,
 Tailwind CSS v4, shadcn/ui (`base-nova` style on `@base-ui/react`), React Hook Form + Zod,
-Zustand + Immer, date-fns, ECharts + Recharts, react-markdown, Vitest + Testing Library + MSW,
-ESLint 10. Node 20.19+ or 22.12+. npm runs only in `frontend/` (the only `package.json` and
+Zustand + Immer, date-fns, ECharts + Recharts, react-markdown, Vitest 5 + Testing Library + MSW 3,
+ESLint 10. Node 22.12+ (MSW 3 and jest-dom 7 require it).
+TypeScript stays on 6.0 until `typescript-eslint` supports 7 (it requires `typescript <6.1`). npm runs only in `frontend/` (the only `package.json` and
 `package-lock.json`). Never run `npm` or `npx` from the repo root.
 
 **Layout (`src/`):** `api/` (client, endpoint functions, `queryKeys.ts`), `components/` (`ui/`
@@ -196,8 +197,12 @@ for shadcn, `charts/`, `layout/`), `hooks/`, `lib/`, `routes/`, `schemas/`, `sto
 - Markdown / LLM output: render with `src/components/Markdown.tsx`.
 
 **Testing**
-- Environment is `happy-dom`. `src/test/setup.ts` loads jest-dom, starts the MSW server, and
+- Environment is `happy-dom`. `src/test/setup.ts` loads jest-dom (`@testing-library/jest-dom/vitest`,
+  which types the matchers for Vitest), starts the MSW server with `onUnhandledFrame: "bypass"`, and
   polyfills `localStorage` (Node 25+ ships a stub that shadows the DOM one).
+- Vitest 5 defaults to `clearMocks: true`: mock call history is cleared before every test. Calls
+  made in `beforeAll` (e.g. at module import) are gone by the time a test runs, so record what you
+  need inside `beforeAll` (see `src/api/client.test.ts`).
 - Mock HTTP with MSW (default handlers in `src/test/handlers.ts`, override with
   `server.use(...)`) or mock Axios at module level. Never make real HTTP calls.
 - Co-locate tests with the code they test (`Button.test.tsx` next to `button.tsx`). Route tests

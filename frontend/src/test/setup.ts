@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom"
+import "@testing-library/jest-dom/vitest"
 import { afterAll, afterEach, beforeAll } from "vitest"
 
 import { server } from "./server"
@@ -38,6 +38,6 @@ for (const name of ["localStorage", "sessionStorage"] as const) {
 
 // Start the MSW mock server for the whole suite. Tests that mock `@/api/client`
 // directly are unaffected because unhandled requests are bypassed.
-beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }))
+beforeAll(() => server.listen({ onUnhandledFrame: "bypass" }))
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())

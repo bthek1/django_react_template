@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:24-slim
 
 ENV NODE_ENV=development
 
@@ -10,6 +10,6 @@ RUN npm install
 
 COPY . /app
 
-EXPOSE 5173
+EXPOSE 5174
 
 CMD ["npm", "run", "dev", "--", "--host"]
