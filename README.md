@@ -14,7 +14,7 @@ A monorepo starter for a decoupled web application:
 git clone <repo-url> && cd django_react_template
 
 # 2. Create the env file (one .env in the repo root, shared by backend and frontend)
-cp .env.example .env    # or: just env-init
+cp .env.example .env
 
 # 3. Start everything
 docker compose up
@@ -29,14 +29,14 @@ docker compose exec backend python manage.py migrate
 | Backend API | http://localhost:8005/api/ |
 | Django admin | http://localhost:8005/admin/ |
 | Health check | http://localhost:8005/api/health/ |
-| Flower (Celery UI) | http://localhost:5555 (run `just flower`) |
+| Flower (Celery UI) | http://localhost:5555 (`cd backend && uv run celery -A core flower --port=5555`) |
 
 ---
 
 ## Local development without Docker
 
 ```bash
-cp .env.example .env    # or: just env-init
+cp .env.example .env
 just install            # uv sync + npm install
 just dev                # db + redis + celery in Docker, backend and frontend locally
 ```

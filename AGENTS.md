@@ -26,47 +26,56 @@ project-specific names, domains or data. Prefer documented conventions over one-
 |----------|------|
 | Setup, endpoints and request/response shapes | [`README.md`](README.md) (Quick Start, API) |
 | Env vars | [`.env.example`](.env.example) |
-| Every command | [`justfile`](justfile) (`just --list`) |
+| Day-to-day commands | [`justfile`](justfile) (`just`) and the Commands section below |
 | JWT handling | `frontend/src/api/client.ts`, `SIMPLE_JWT` in `backend/core/settings/base.py` |
 | Celery wiring | `backend/core/celery.py`, `backend/apps/utils/tasks.py`, `frontend/src/hooks/useTaskPoller.ts` |
-| Active / finished plans | GitHub issues labelled `plan` (`just plans`, `just plans --state closed`) |
+| Active / finished plans | GitHub issues labelled `plan` (`gh issue list --label plan [--state closed]`) |
 
 ---
 
 ## Commands
 
-All workflows are in the [`justfile`](justfile). Run `just --list` for everything.
+The [`justfile`](justfile) holds only day-to-day commands. Run `just` to list them. Do not add
+recipes for one-off or rare tasks; document the raw command here instead. A new recipe gets a
+`# doc comment` line, then `[group('<area>')]` (`dev`, `docker`, `backend`, `frontend`,
+`database`), then the recipe. The comment must come before the attribute, or `just` fails with
+"Extraneous attribute". Helpers that other recipes call are marked `[private]`: hidden from the
+list but still runnable by name.
 
 ```bash
-just dev            # db + redis + celery (docker) + backend + frontend
-just up             # everything via docker compose
+just dev            # db + redis + celery (docker) + backend + frontend dev servers
+just install        # uv sync + npm install
+just up / down      # everything via docker compose
 
-# Backend (run from backend/ with `uv run ...` outside just)
-just be-dev         # makemigrations + migrate + runserver on :8005
-just be-test        # pytest
-just be-test-cov    # pytest with coverage
-just be-lint        # ruff check
-just be-fmt         # ruff format
+just be-migrate
 just be-makemigrations <app>
-just be-startapp <name>
-uv run mypy .       # type check, from backend/
+just be-superuser   # from DJANGO_SUPERUSER_* in .env
+just be-test        # pytest
+just be-lint        # ruff check (note: pyproject sets fix = true, so this rewrites files)
+just be-fmt         # ruff format
 
-# Frontend
-just fe-dev         # vite dev server on :5174
-just fe-build       # type-check + build
 just fe-test        # vitest
-just fe-test-ui     # vitest UI
 just fe-lint        # eslint
+just fe-build       # type-check + build
 
-# Celery
-just celery-up      # redis + worker + beat (docker)
-just celery-worker  # worker outside docker, for debugging
-just flower         # Flower UI on :5555
-
-# Plans (GitHub issues)
-just plans          # list open plan issues
-just gh-labels      # one-time: create the plan / status labels
+just db-reset       # DESTRUCTIVE: drops the Postgres volume, then re-migrates
 ```
+
+Rarer tasks have no recipe. Run them directly:
+
+| Task | Command |
+|---|---|
+| Backend dev server only | `just be-dev` (private helper, :8005) |
+| Frontend dev server only | `just fe-dev` (private helper, :5174) |
+| Backend coverage | `cd backend && uv run pytest --cov=apps --cov-report=term-missing` |
+| Type check backend | `cd backend && uv run mypy .` |
+| New Django app | `mkdir backend/apps/<name> && cd backend && uv run python manage.py startapp <name> apps/<name>` |
+| Celery worker outside Docker | `cd backend && uv run celery -A core worker --loglevel=info` |
+| Flower UI on :5555 | `cd backend && uv run celery -A core flower --port=5555` |
+| Logs | `docker compose logs -f <service>` |
+| Rebuild images | `docker compose build [service]` |
+| psql shell | `docker compose exec db psql -U appuser -d appdb` |
+| Vitest UI | `cd frontend && npm run test:ui` |
 
 ### Local services and ports
 
@@ -232,7 +241,9 @@ the same change:
 
 Any change touching more than one file needs a plan issue before implementation.
 
-- Create it with labels `plan` + `status: draft` (run `just gh-labels` once per repo first):
+- Create it with labels `plan` + `status: draft`. Once per repo, create the labels first:
+  `gh label create plan --force`, `gh label create "status: draft" --force`,
+  `gh label create "status: in-progress" --force`. Then:
   `gh issue create --title "Plan: <feature>" --label plan --label "status: draft" --body-file <file>`.
   Write the body file outside the repo.
 - The body has these sections: **Goal** (one paragraph), **Background**, **Phases** (each with an
@@ -258,7 +269,7 @@ Any change touching more than one file needs a plan issue before implementation.
 
 - Backend and frontend communicate only through the API contract. Never mix their concerns.
 - Never commit `.env` files. `.env.example` is the source of truth for required vars.
-- There is exactly one env file: `.env` in the repo root, from `.env.example` (`just env-init`).
+- There is exactly one env file: `.env` in the repo root, from `.env.example` (`cp .env.example .env`).
   Django, Vite, docker-compose (`env_file`), direnv (`backend/.envrc`) and VS Code all read it.
   Do not add per-folder `.env` files. Add new vars to the root `.env.example`, grouped under the
   backend or frontend heading.
