@@ -3,7 +3,7 @@
 A monorepo starter for a decoupled web application:
 
 - **`backend/`** — Django REST Framework API (Python 3.13, PostgreSQL, Celery)
-- **`frontend/`** — React 18 SPA (TypeScript, Vite, TanStack Router, TanStack Query)
+- **`frontend/`** — React 19 SPA (TypeScript, Vite, TanStack Router, TanStack Query)
 
 ---
 
@@ -26,10 +26,11 @@ docker compose exec backend python manage.py migrate
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8000/api/ |
-| Django admin | http://localhost:8000/admin/ |
-| Health check | http://localhost:8000/api/health/ |
+| Frontend | http://localhost:5174 |
+| Backend API | http://localhost:8005/api/ |
+| Django admin | http://localhost:8005/admin/ |
+| Health check | http://localhost:8005/api/health/ |
+| Flower (Celery UI) | http://localhost:5555 (run `just flower`) |
 
 ---
 
@@ -43,9 +44,9 @@ docker compose exec backend python manage.py migrate
 | [docs/explanations/architecture.md](docs/explanations/architecture.md) | Monorepo structure and design decisions |
 | [docs/explanations/auth-flow.md](docs/explanations/auth-flow.md) | JWT auth flow end to end |
 | [docs/guides/celery_setup.md](docs/guides/celery_setup.md) | Celery + Redis async task setup |
-| [docs/plans/](docs/plans/) | Plan lifecycle: `future/` → `in-progress/` → `completed/` |
+| [docs/plans/](docs/plans/) | Plan lifecycle: `future/` docs → plan issues on GitHub (label `plan`) → closed when done |
 
-**AI assistants:** [CLAUDE.md](CLAUDE.md) (Claude Code) and [.github/copilot-instructions.md](.github/copilot-instructions.md) (GitHub Copilot) describe the project conventions for AI tooling. Keep both in sync when conventions change.
+**AI assistants:** [AGENTS.md](AGENTS.md) holds all agent rules. `CLAUDE.md` only imports it (`@AGENTS.md`). Add new rules to `AGENTS.md`, not anywhere else.
 
 ---
 
@@ -57,7 +58,7 @@ docker compose exec backend python manage.py migrate
 │   ├── core/         Settings, URLs, WSGI
 │   ├── apps/         Domain applications
 │   │   ├── accounts/ User model (email-based), registration, JWT auth
-│   │   └── pages/    Health check
+│   │   └── pages/    Health check, Celery task demo endpoints
 │   └── manage.py
 ├── frontend/         React SPA
 │   └── src/
@@ -87,14 +88,14 @@ docker compose exec backend python manage.py migrate
 | Dependency manager | [uv](https://github.com/astral-sh/uv) |
 | Frontend language | TypeScript |
 | Frontend bundler | Vite |
-| UI framework | React 18 |
+| UI framework | React 19 |
 | Routing | TanStack Router |
 | Server state | TanStack Query v5 |
 | HTTP client | Axios |
 | Styling | Tailwind CSS v4 + shadcn/ui |
 | Forms | React Hook Form + Zod |
 | Global state | Zustand |
-| Testing (frontend) | Vitest + React Testing Library |
-| Utilities | date-fns, Plotly.js |
+| Testing (frontend) | Vitest + React Testing Library + MSW |
+| Utilities | date-fns, ECharts, Recharts, react-markdown |
 | Container | Docker Compose |
 | Task runner | [just](https://github.com/casey/just) |

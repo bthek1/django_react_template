@@ -201,6 +201,18 @@ db-shell:
 db-reset: down-v up-d be-migrate
     @echo "Database reset complete."
 
+# ── Plans (GitHub issues) ──────────────────────────────────────────────────────
+
+# List open plan issues (pass e.g. `--state closed` to see finished ones)
+plans *args:
+    gh issue list --label plan {{args}}
+
+# Create the plan labels on the GitHub repo (idempotent)
+gh-labels:
+    gh label create "plan" --color 5319e7 --description "Phased feature plan (docs/plans/README.md)" --force
+    gh label create "status: draft" --color c5def5 --description "Plan is being written; work not started" --force
+    gh label create "status: in-progress" --color fbca04 --description "Plan is being implemented" --force
+
 # ── Utilities ──────────────────────────────────────────────────────────────────
 
 # Print configured environment files
