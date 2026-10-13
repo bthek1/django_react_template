@@ -33,17 +33,42 @@ docker compose exec backend python manage.py migrate
 
 ---
 
-## Documentation
+## Local development without Docker
 
-| Doc | Description |
-|-----|-------------|
-| [docs/guides/local-setup.md](docs/guides/local-setup.md) | Full local dev setup (Docker + without Docker) |
-| [docs/guides/onboarding.md](docs/guides/onboarding.md) | New developer orientation |
-| [docs/standards/api-contracts.md](docs/standards/api-contracts.md) | All API endpoints, request/response shapes |
-| [docs/explanations/architecture.md](docs/explanations/architecture.md) | Monorepo structure and design decisions |
-| [docs/explanations/auth-flow.md](docs/explanations/auth-flow.md) | JWT auth flow end to end |
-| [docs/guides/celery_setup.md](docs/guides/celery_setup.md) | Celery + Redis async task setup |
-| [docs/plans/](docs/plans/) | Plan lifecycle: `future/` docs → plan issues on GitHub (label `plan`) → closed when done |
+```bash
+cp .env.example .env    # or: just env-init
+just install            # uv sync + npm install
+just dev                # db + redis + celery in Docker, backend and frontend locally
+```
+
+The backend runs on `:8005` and the frontend on `:5174`. Run `just --list` for every command.
+
+---
+
+## API
+
+All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Bearer <access>`.
+
+| Method | Path | Auth | Body | Response |
+|--------|------|------|------|----------|
+| `POST` | `/api/token/` | Public | `{email, password}` | `200 {access, refresh}` |
+| `POST` | `/api/token/refresh/` | Public | `{refresh}` | `200 {access, refresh}` (refresh tokens rotate) |
+| `POST` | `/api/accounts/register/` | Public | `{email, password}` (password min 8) | `201 {id, email}` |
+| `GET` | `/api/accounts/me/` | JWT | | `200 {id, email, first_name, last_name, date_joined}` |
+| `PUT` / `PATCH` | `/api/accounts/me/` | JWT | `{first_name?, last_name?, email?}` | `200` same shape as `GET` |
+| `GET` | `/api/health/` | Public | | `200 {status: "ok"}` |
+| `POST` | `/api/tasks/trigger/` | Public | any JSON object | `202 {task_id}` |
+| `GET` | `/api/tasks/<task_id>/` | Public | | `200 {task_id, status, result, traceback}` |
+| `POST` | `/api/tasks/<task_id>/revoke/` | Public | `{terminate?: bool}` | `200 {task_id, revoked: true}` |
+
+- Validation errors return `400` with DRF's `{field: [messages]}` shape. Missing or bad JWTs return `401`.
+- The `/api/tasks/` endpoints are a Celery demo (`apps/utils/tasks.py`). They are public so the
+  demo works without login. Add auth before reusing them.
+- Task `status` is a Celery state (`PENDING`, `STARTED`, `SUCCESS`, `FAILURE`, `REVOKED`, ...).
+  `result` is set only on `SUCCESS` and `traceback` only on `FAILURE`. An unknown `task_id`
+  returns `PENDING`.
+
+---
 
 **AI assistants:** [AGENTS.md](AGENTS.md) holds all agent rules. `CLAUDE.md` only imports it (`@AGENTS.md`). Add new rules to `AGENTS.md`, not anywhere else.
 
@@ -69,7 +94,7 @@ docker compose exec backend python manage.py migrate
 │       ├── schemas/  Zod validation schemas
 │       ├── store/    Zustand global state slices
 │       └── types/    TypeScript types from API contracts
-├── docs/             Project knowledge base
+├── AGENTS.md         Rules for AI coding agents
 └── docker-compose.yml
 ```
 

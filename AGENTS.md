@@ -24,16 +24,12 @@ project-specific names, domains or data. Prefer documented conventions over one-
 
 | You need | Read |
 |----------|------|
-| Architecture and design decisions | [`docs/explanations/architecture.md`](docs/explanations/architecture.md) |
-| Auth flow (JWT) | [`docs/explanations/auth-flow.md`](docs/explanations/auth-flow.md) |
-| Endpoints and request/response shapes | [`docs/standards/api-contracts.md`](docs/standards/api-contracts.md) |
-| Local dev setup | [`docs/guides/local-setup.md`](docs/guides/local-setup.md) |
-| Celery / async tasks | [`docs/guides/celery_setup.md`](docs/guides/celery_setup.md) |
-| Plan lifecycle and `gh` commands | [`docs/plans/README.md`](docs/plans/README.md) |
-| Plan template | [`.github/ISSUE_TEMPLATE/plan.md`](.github/ISSUE_TEMPLATE/plan.md) |
+| Setup, endpoints and request/response shapes | [`README.md`](README.md) (Quick Start, API) |
+| Env vars | [`.env.example`](.env.example) |
+| Every command | [`justfile`](justfile) (`just --list`) |
+| JWT handling | `frontend/src/api/client.ts`, `SIMPLE_JWT` in `backend/core/settings/base.py` |
+| Celery wiring | `backend/core/celery.py`, `backend/apps/utils/tasks.py`, `frontend/src/hooks/useTaskPoller.ts` |
 | Active / finished plans | GitHub issues labelled `plan` (`just plans`, `just plans --state closed`) |
-| Pre-issue plans (frozen archive) | [`docs/plans/completed/`](docs/plans/completed/) |
-| Target-state docs | [`docs/plans/future/`](docs/plans/future/) |
 
 ---
 
@@ -122,8 +118,9 @@ check and Celery task demo endpoints).
 - Run `makemigrations` with an explicit app name after model changes. Never edit or delete
   migration files by hand.
 
-**Settings:** split into `core/settings/{base,dev,prod,test}.py`, selected by
-`DJANGO_SETTINGS_MODULE`. All config comes from env vars via `django-environ`, loaded from the
+**Settings:** split into `core/settings/{base,dev,prod,test}.py`. `manage.py` defaults
+`DJANGO_SETTINGS_MODULE` to `core.settings`, whose `__init__.py` picks `dev`, `test` or `prod` from
+the `SETTINGS` env var (default `dev`). pytest uses `core.settings.test` directly. All config comes from env vars via `django-environ`, loaded from the
 repo-root `.env` (`base.py` reads `BASE_DIR.parent / ".env"`). Never hardcode secrets or
 credentials. `DATABASE_URL` configures the database.
 
@@ -139,7 +136,7 @@ credentials. `DATABASE_URL` configures the database.
 **Testing:** `core.settings.test` uses SQLite and a fast password hasher. Fixtures go in
 `conftest.py` (app-level or `backend/conftest.py`). Markers: `slow`, `integration`, `development`.
 
-**API docs:** no OpenAPI generator is installed. `docs/standards/api-contracts.md` is the
+**API docs:** no OpenAPI generator is installed. The API table in `README.md` is the
 hand-written contract.
 
 ---
@@ -211,51 +208,49 @@ for shadcn, `charts/`, `layout/`), `hooks/`, `lib/`, `routes/`, `schemas/`, `sto
 
 ---
 
-## Docs (`docs/`)
+## Docs
 
-`docs/` is the source of truth for project knowledge. Docs travel with code in the same change.
+There is no `docs/` folder. Project knowledge lives in two files, and docs travel with code in
+the same change:
 
-| Folder | Holds |
+| File | Holds |
 |---|---|
-| `docs/standards/` | Conventions and the API contract |
-| `docs/guides/` | Step-by-step how-tos: setup, onboarding, Celery |
-| `docs/explanations/` | Design rationale and background |
-| `docs/plans/` | Plan lifecycle, `future/` target-state docs, frozen `completed/` archive |
+| `README.md` | Quick start, local setup, the API table, project structure, tech stack |
+| `AGENTS.md` | Conventions and rules for agents (this file) |
 
-- A new or changed endpoint updates `docs/standards/api-contracts.md`. Each entry gives the
-  method and path, auth (public or authenticated), request body, response shape with status
-  codes, and error responses.
-- Changed setup steps update `docs/guides/local-setup.md`.
-- A new backend app or frontend module gets an explanation or guide.
-- Design decisions that outlive a plan go in `docs/explanations/`, linking the plan issue.
-- Write for the next developer: assume no prior context, use tables for structured data and
-  code blocks for commands.
+- A new or changed endpoint updates the API table in `README.md`: method, path, auth (public or
+  JWT), request body, response shape with status code. Note non-obvious error behaviour below
+  the table.
+- Changed setup steps or ports update the Quick Start in `README.md` and the ports table here.
+- A changed convention updates this file.
+- New env vars go in `.env.example` with a comment.
 - If you find an outdated doc, fix it in the same change.
 
 ---
 
 ## Plans (GitHub issues)
 
-Any change touching more than one file needs a plan issue before implementation. The full
-lifecycle and `gh` commands are in [`docs/plans/README.md`](docs/plans/README.md).
+Any change touching more than one file needs a plan issue before implementation.
 
-- Create the issue from [`.github/ISSUE_TEMPLATE/plan.md`](.github/ISSUE_TEMPLATE/plan.md) with
-  labels `plan` + `status: draft`.
+- Create it with labels `plan` + `status: draft` (run `just gh-labels` once per repo first):
+  `gh issue create --title "Plan: <feature>" --label plan --label "status: draft" --body-file <file>`.
+  Write the body file outside the repo.
+- The body has these sections: **Goal** (one paragraph), **Background**, **Phases** (each with an
+  **Outcome** line, task checkboxes and a **Validation** block), **Testing**, **Risks & Notes**.
 - Plans are phased. Each phase is **stable**: it leaves the repo working (migrations applied,
   existing suites green, nothing half-wired).
-- Each phase has a **Validation** block naming the tests (file + test name) and manual steps that
-  prove it landed. Progress is measured by those checks passing. If a step can only be verified
-  after a later phase, merge it into that phase.
-- Each plan also has a plan-level **Testing** section for cross-cutting strategy and the
-  end-to-end walkthrough.
-- When work starts, swap `status: draft` for `status: in-progress`.
-- When a phase lands, tick its boxes in the issue body and comment with the validation results.
+- Each phase's **Validation** names the tests (file + test name) and manual steps that prove it
+  landed. Progress is measured by those checks passing. If a step can only be verified after a
+  later phase, merge it into that phase.
+- The plan-level **Testing** section covers cross-cutting strategy and the end-to-end
+  walkthrough.
+- When work starts, swap `status: draft` for `status: in-progress`
+  (`gh issue edit <n> --remove-label "status: draft" --add-label "status: in-progress"`).
+- When a phase lands, tick its boxes in the issue body (`gh issue edit <n> --body-file <file>`)
+  and comment with the validation results (`gh issue comment <n> --body "..."`).
 - When all phases are done, close the issue as completed (`Closes #<n>` in the final PR, or
   `gh issue close <n> --reason completed`). Close abandoned plans as `not planned` with a reason.
 - Reference the issue (`#<n>`) in related commits and PRs. Never delete plan issues.
-- `docs/plans/future/` holds target-state docs, not tasks. When an increment starts, set the
-  issue's **Source** to the future doc and note the issue number in that doc.
-- Do not add files to `docs/plans/completed/`.
 
 ---
 
@@ -267,6 +262,10 @@ lifecycle and `gh` commands are in [`docs/plans/README.md`](docs/plans/README.md
   Django, Vite, docker-compose (`env_file`), direnv (`backend/.envrc`) and VS Code all read it.
   Do not add per-folder `.env` files. Add new vars to the root `.env.example`, grouped under the
   backend or frontend heading.
+- There is exactly one `.gitignore`, in the repo root. Do not add per-folder `.gitignore` files.
+  Scope folder-specific rules with a path prefix (`frontend/dist/`, `backend/.venv/`). The
+  `.gitignore` files that ruff, pytest and mypy write inside their own cache folders are
+  untracked tool output; leave them.
 - Prefer explicit, readable code over clever code.
 
 ## Never do without explicit confirmation

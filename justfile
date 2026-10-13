@@ -209,7 +209,7 @@ plans *args:
 
 # Create the plan labels on the GitHub repo (idempotent)
 gh-labels:
-    gh label create "plan" --color 5319e7 --description "Phased feature plan (docs/plans/README.md)" --force
+    gh label create "plan" --color 5319e7 --description "Phased feature plan (see AGENTS.md)" --force
     gh label create "status: draft" --color c5def5 --description "Plan is being written; work not started" --force
     gh label create "status: in-progress" --color fbca04 --description "Plan is being implemented" --force
 

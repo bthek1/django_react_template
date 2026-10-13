@@ -234,5 +234,22 @@ backend/.venv/
 /node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/dist-ssr/
 frontend/coverage/
+frontend/*.local
 frontend/vite.config.ts.timestamp-*.mjs
+frontend/.vscode/*
+!frontend/.vscode/extensions.json
+
+# Logs (*.log is ignored above)
+logs/
+npm-debug.log*
+
+# Editors and OS
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
