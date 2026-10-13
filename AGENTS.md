@@ -72,9 +72,10 @@ Rarer tasks have no recipe. Run them directly:
 | New Django app | `mkdir backend/apps/<name> && cd backend && uv run python manage.py startapp <name> apps/<name>` |
 | Celery worker outside Docker | `cd backend && uv run celery -A core worker --loglevel=info` |
 | Flower UI on :5555 | `cd backend && uv run celery -A core flower --port=5555` |
-| Logs | `docker compose logs -f <service>` |
-| Rebuild images | `docker compose build [service]` |
-| psql shell | `docker compose exec db psql -U appuser -d appdb` |
+| Logs | `docker compose -f infra/docker/docker-compose.yml logs -f <service>` |
+| Rebuild images | `docker compose -f infra/docker/docker-compose.yml build [service]` |
+| psql shell | `docker compose -f infra/docker/docker-compose.yml exec db psql -U appuser -d appdb` |
+| Prod backend image | `docker build -f infra/docker/backend.prod.Dockerfile backend` |
 | Vitest UI | `cd frontend && npm run test:ui` |
 
 ### Local services and ports
@@ -88,6 +89,13 @@ Host ports are offset so they do not clash with a locally installed Postgres or 
 | `backend` | `8005` | Django dev server |
 | `celery_worker`, `celery_beat` | none | beat uses `DatabaseScheduler` |
 | `frontend` | `5174` | Vite dev server |
+
+All Docker files live in `infra/docker/`: `docker-compose.yml` (dev stack),
+`docker-compose.prod.yml` (gunicorn backend + db), `<service>[.prod].Dockerfile`, and a
+`<name>.Dockerfile.dockerignore` next to each Dockerfile (BuildKit reads it in place of the build
+context's `.dockerignore`). Paths in the compose files are relative to `infra/docker/`. The justfile
+passes `-f infra/docker/docker-compose.yml -p <repo folder name>`; pass the same flags when running
+`docker compose` by hand so you hit the same containers and volumes.
 
 Inside Compose, the `environment:` blocks set `DATABASE_URL` and `CELERY_BROKER_URL` to the
 in-network hosts (`db:5432`, `redis:6379`). These override the `localhost` values in the root `.env`.

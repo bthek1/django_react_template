@@ -8,6 +8,11 @@ set dotenv-load := false
 
 export VIRTUAL_ENV := ""
 
+# Compose files live in infra/docker/. The project name is pinned to the repo folder name
+# so containers and the postgres_data volume keep the same names as before the move.
+
+compose := "docker compose -f infra/docker/docker-compose.yml -p " + lowercase(file_name(justfile_directory()))
+
 [private]
 default:
     @just --list
@@ -49,12 +54,12 @@ install:
 # Start all services (db, redis, celery, backend, frontend)
 [group('docker')]
 up:
-    docker compose up
+    {{ compose }} up
 
 # Stop all services
 [group('docker')]
 down:
-    docker compose down
+    {{ compose }} down
 
 # --- Backend ---
 
@@ -110,8 +115,8 @@ fe-build:
 # Reset the database: drops Docker volumes, restarts services, re-applies migrations
 [group('database')]
 db-reset:
-    docker compose down -v
-    docker compose up -d
+    {{ compose }} down -v
+    {{ compose }} up -d
     just be-migrate
     @echo "Database reset complete."
 
@@ -130,19 +135,19 @@ fe-dev:
 # Start the db container if not already running
 [private]
 db-up:
-    @docker compose ps --status running db | grep -q db \
+    @{{ compose }} ps --status running db | grep -q db \
         && echo "DB already running." \
-        || (echo "Starting DB..." && docker compose up -d db && echo "Waiting for DB to be ready..." && sleep 3)
+        || (echo "Starting DB..." && {{ compose }} up -d db && echo "Waiting for DB to be ready..." && sleep 3)
 
 # Start the Redis + Celery worker + beat containers if not already running
 [private]
 celery-up:
     #!/usr/bin/env bash
-    _redis_up=$(docker compose ps --status running redis | grep -c redis || true)
-    _worker_up=$(docker compose ps --status running celery_worker | grep -c celery_worker || true)
+    _redis_up=$({{ compose }} ps --status running redis | grep -c redis || true)
+    _worker_up=$({{ compose }} ps --status running celery_worker | grep -c celery_worker || true)
     if [[ "$_redis_up" -gt 0 && "$_worker_up" -gt 0 ]]; then
         echo "Redis + Celery worker already running."
     else
         echo "Starting Redis + Celery worker + beat..."
-        docker compose up -d redis celery_worker celery_beat
+        {{ compose }} up -d redis celery_worker celery_beat
     fi

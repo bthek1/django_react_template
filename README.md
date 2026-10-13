@@ -94,8 +94,8 @@ All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Be
 │       ├── schemas/  Zod validation schemas
 │       ├── store/    Zustand global state slices
 │       └── types/    TypeScript types from API contracts
-├── AGENTS.md         Rules for AI coding agents
-└── docker-compose.yml
+├── infra/docker/      Dockerfiles + compose files (dev stack, prod backend)
+└── AGENTS.md         Rules for AI coding agents
 ```
 
 ---

@@ -1,10 +1,10 @@
 services:
   web:
     build:
-      context: ..
-      dockerfile: Docker_files/Dockerfile
+      context: ../../backend
+      dockerfile: ../infra/docker/backend.prod.Dockerfile
     volumes:
-      - ..:/app
+      - ../../backend:/app
     ports:
       - "8000:8000"
     depends_on:

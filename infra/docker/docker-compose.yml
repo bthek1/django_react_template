@@ -1,3 +1,5 @@
+# Dev stack. Paths are relative to this file. Run via `just up` / `just down`, or:
+#   docker compose -f infra/docker/docker-compose.yml -p <repo-dir-name> up
 services:
   redis:
     image: redis:7-alpine
@@ -21,32 +23,36 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
   backend:
-    build: ./backend
+    build:
+      context: ../../backend
+      dockerfile: ../infra/docker/backend.Dockerfile
     command: python manage.py runserver 0.0.0.0:8005
     volumes:
-      - ./backend:/app
+      - ../../backend:/app
     ports:
       - "8005:8005"
     depends_on:
       - db
     env_file:
-      - path: ./.env
+      - path: ../../.env
         required: false
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
 
   celery_worker:
-    build: ./backend
+    build:
+      context: ../../backend
+      dockerfile: ../infra/docker/backend.Dockerfile
     command: celery -A core worker --loglevel=info --concurrency=2
     volumes:
-      - ./backend:/app
+      - ../../backend:/app
     depends_on:
       db:
         condition: service_started
       redis:
         condition: service_healthy
     env_file:
-      - path: ./.env
+      - path: ../../.env
         required: false
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
@@ -55,15 +61,17 @@ services:
       # core/settings/base.py) so the task-status API and admin can read them.
 
   celery_beat:
-    build: ./backend
+    build:
+      context: ../../backend
+      dockerfile: ../infra/docker/backend.Dockerfile
     command: celery -A core beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
-      - ./backend:/app
+      - ../../backend:/app
     depends_on:
       - db
       - redis
     env_file:
-      - path: ./.env
+      - path: ../../.env
         required: false
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
@@ -72,15 +80,17 @@ services:
       # core/settings/base.py) so the task-status API and admin can read them.
 
   frontend:
-    build: ./frontend
+    build:
+      context: ../../frontend
+      dockerfile: ../infra/docker/frontend.Dockerfile
     command: npm run dev -- --host
     volumes:
-      - ./frontend:/app
+      - ../../frontend:/app
       - /app/node_modules
     ports:
       - "5174:5174"
     env_file:
-      - path: ./.env
+      - path: ../../.env
         required: false
     environment:
       VITE_API_BASE_URL: http://localhost:8005
