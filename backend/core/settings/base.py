@@ -7,7 +7,8 @@ env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-environ.Env.read_env(BASE_DIR / ".env")
+# One .env at the repo root, shared with the frontend. Containers get vars via env_file.
+environ.Env.read_env(BASE_DIR.parent / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 

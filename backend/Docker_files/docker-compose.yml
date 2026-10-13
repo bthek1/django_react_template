@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
     env_file:
-      - path: ../.env
+      - path: ../../.env
         required: false
     environment:
       DJANGO_SETTINGS_MODULE: core.settings.dev

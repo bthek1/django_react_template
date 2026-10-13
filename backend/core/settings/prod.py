@@ -1,9 +1,4 @@
-import environ
-
 from .base import *
-
-env = environ.Env()
-environ.Env.read_env(BASE_DIR / ".env")
 
 DEBUG = False
 

@@ -30,7 +30,7 @@ services:
     depends_on:
       - db
     env_file:
-      - path: ./backend/.env
+      - path: ./.env
         required: false
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
@@ -46,7 +46,7 @@ services:
       redis:
         condition: service_healthy
     env_file:
-      - path: ./backend/.env
+      - path: ./.env
         required: false
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
@@ -63,7 +63,7 @@ services:
       - db
       - redis
     env_file:
-      - path: ./backend/.env
+      - path: ./.env
         required: false
     environment:
       DATABASE_URL: postgres://appuser:apppassword@db:5432/appdb
@@ -80,7 +80,7 @@ services:
     ports:
       - "5174:5174"
     env_file:
-      - path: ./frontend/.env
+      - path: ./.env
         required: false
     environment:
       VITE_API_BASE_URL: http://localhost:8005

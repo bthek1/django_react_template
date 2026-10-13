@@ -11,6 +11,8 @@ export default defineConfig({
     TanStackRouterVite({ routeFileIgnorePattern: ".(test|spec).(tsx?|js)" }),
     tailwindcss(),
   ],
+  // Read .env from the repo root, shared with the backend.
+  envDir: resolve(__dirname, ".."),
   resolve: {
     alias: {
       "@": resolve(__dirname, "./src"),

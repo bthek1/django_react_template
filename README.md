@@ -13,9 +13,8 @@ A monorepo starter for a decoupled web application:
 # 1. Clone
 git clone <repo-url> && cd django_react_template
 
-# 2. Create env files
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+# 2. Create the env file (one .env in the repo root, shared by backend and frontend)
+cp .env.example .env    # or: just env-init
 
 # 3. Start everything
 docker compose up

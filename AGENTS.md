@@ -85,7 +85,7 @@ Host ports are offset so they do not clash with a locally installed Postgres or 
 | `frontend` | `5174` | Vite dev server |
 
 Inside Compose, the `environment:` blocks set `DATABASE_URL` and `CELERY_BROKER_URL` to the
-in-network hosts (`db:5432`, `redis:6379`). These override the `localhost` values in `backend/.env`.
+in-network hosts (`db:5432`, `redis:6379`). These override the `localhost` values in the root `.env`.
 
 ---
 
@@ -120,8 +120,9 @@ check and Celery task demo endpoints).
   migration files by hand.
 
 **Settings:** split into `core/settings/{base,dev,prod,test}.py`, selected by
-`DJANGO_SETTINGS_MODULE`. All config comes from env vars via `django-environ`. Never hardcode
-secrets or credentials. `DATABASE_URL` configures the database.
+`DJANGO_SETTINGS_MODULE`. All config comes from env vars via `django-environ`, loaded from the
+repo-root `.env` (`base.py` reads `BASE_DIR.parent / ".env"`). Never hardcode secrets or
+credentials. `DATABASE_URL` configures the database.
 
 **Auth:** JWT via simplejwt. `POST /api/token/` and `POST /api/token/refresh/`.
 
@@ -164,7 +165,8 @@ for shadcn, `charts/`, `layout/`), `hooks/`, `lib/`, `routes/`, `schemas/`, `sto
   domain) and the shadcn `Form`, `FormField`, `FormItem`, `FormMessage` primitives.
 - No `any`. API response types go in `src/types/`, matching the API contract.
 - Import with the `@/` alias (`src/`). No relative `../../` imports across feature boundaries.
-- Env vars are prefixed `VITE_` and read via `import.meta.env.VITE_*`.
+- Env vars are prefixed `VITE_` and read via `import.meta.env.VITE_*`. Vite loads them from the
+  repo-root `.env` (`envDir` in `vite.config.ts`). Only `VITE_` vars reach the browser bundle.
 
 **Styling**
 - Tailwind v4 is CSS-first (`@import "tailwindcss"` in `src/index.css`). There is no
@@ -251,6 +253,10 @@ lifecycle and `gh` commands are in [`docs/plans/README.md`](docs/plans/README.md
 
 - Backend and frontend communicate only through the API contract. Never mix their concerns.
 - Never commit `.env` files. `.env.example` is the source of truth for required vars.
+- There is exactly one env file: `.env` in the repo root, from `.env.example` (`just env-init`).
+  Django, Vite, docker-compose (`env_file`), direnv (`backend/.envrc`) and VS Code all read it.
+  Do not add per-folder `.env` files. Add new vars to the root `.env.example`, grouped under the
+  backend or frontend heading.
 - Prefer explicit, readable code over clever code.
 
 ## Never do without explicit confirmation

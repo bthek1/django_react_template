@@ -217,13 +217,11 @@ gh-labels:
 
 # Print configured environment files
 env:
-    @echo "=== backend/.env ===" && cat backend/.env 2>/dev/null || echo "(not found)"
-    @echo "=== frontend/.env ===" && cat frontend/.env 2>/dev/null || echo "(not found)"
+    @echo "=== .env ===" && cat .env 2>/dev/null || echo "(not found)"
 
-# Copy .env.example files to .env (safe — skips if already exists)
+# Copy .env.example to .env in the repo root (skips if .env already exists)
 env-init:
-    @[ -f backend/.env ] || cp backend/.env.example backend/.env && echo "Created backend/.env"
-    @[ -f frontend/.env ] || cp frontend/.env.example frontend/.env && echo "Created frontend/.env"
+    @[ -f .env ] || (cp .env.example .env && echo "Created .env")
 
 # Clean Python bytecode and cache files
 clean:
