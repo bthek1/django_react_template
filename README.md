@@ -16,12 +16,17 @@ git clone <repo-url> && cd django_react_template
 # 2. Create the env file (one .env in the repo root, shared by backend and frontend)
 cp .env.example .env
 
-# 3. Start everything
-docker compose up
+# 3. Start everything (compose files live in infra/docker/)
+just up
 
-# 4. Run migrations (first time)
-docker compose exec backend python manage.py migrate
+# 4. Run migrations (first time), in a second terminal
+just compose exec backend python manage.py migrate
 ```
+
+`just compose <args>` runs any `docker compose` command against `infra/docker/docker-compose.yml`
+with the project name set to the repo folder name (lowercased). Without `just`, pass the same
+`-f` and `-p` flags yourself. Leaving out `-p` makes Compose name the project `docker`, after the
+compose file's folder, and create a separate set of containers and volumes.
 
 | Service | URL |
 |---------|-----|
@@ -83,6 +88,7 @@ All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Be
 │   ├── apps/         Domain applications
 │   │   ├── accounts/ User model (email-based), registration, JWT auth
 │   │   └── utils/    Health check, Celery task demo endpoints
+│   ├── tests/        Repo-level tests (infra/docker layout)
 │   └── manage.py
 ├── frontend/         React SPA
 │   └── src/
@@ -94,7 +100,7 @@ All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Be
 │       ├── schemas/  Zod validation schemas
 │       ├── store/    Zustand global state slices
 │       └── types/    TypeScript types from API contracts
-├── infra/docker/      Dockerfiles + compose files (dev stack, prod backend)
+├── infra/docker/     Dockerfiles + compose files (dev stack, prod backend)
 └── AGENTS.md         Rules for AI coding agents
 ```
 

@@ -61,6 +61,12 @@ up:
 down:
     {{ compose }} down
 
+# Any other compose command against the dev stack: just compose logs -f backend
+[group('docker')]
+[positional-arguments]
+compose *args:
+    {{ compose }} "$@"
+
 # --- Backend ---
 
 # Apply database migrations

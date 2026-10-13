@@ -11,6 +11,7 @@ A **template** for new Django + DRF + React projects, as a decoupled monorepo:
 
 - **`backend/`**: Django REST Framework API (Python 3.14, PostgreSQL, Celery + Redis)
 - **`frontend/`**: React 19 SPA (TypeScript, Vite, TanStack Router + Query)
+- **`infra/docker/`**: Dockerfiles and compose files for both halves
 
 The backend exposes only `/api/` endpoints. The frontend consumes them over HTTP. The two halves
 share no code. The API contract is the only interface between them.
@@ -46,6 +47,7 @@ list but still runnable by name.
 just dev            # db + redis + celery (docker) + backend + frontend dev servers
 just install        # uv sync + npm install
 just up / down      # everything via docker compose
+just compose <args> # any docker compose command against the dev stack
 
 just be-migrate
 just be-makemigrations <app>
@@ -72,9 +74,9 @@ Rarer tasks have no recipe. Run them directly:
 | New Django app | `mkdir backend/apps/<name> && cd backend && uv run python manage.py startapp <name> apps/<name>` |
 | Celery worker outside Docker | `cd backend && uv run celery -A core worker --loglevel=info` |
 | Flower UI on :5555 | `cd backend && uv run celery -A core flower --port=5555` |
-| Logs | `docker compose -f infra/docker/docker-compose.yml logs -f <service>` |
-| Rebuild images | `docker compose -f infra/docker/docker-compose.yml build [service]` |
-| psql shell | `docker compose -f infra/docker/docker-compose.yml exec db psql -U appuser -d appdb` |
+| Logs | `just compose logs -f <service>` |
+| Rebuild images | `just compose build [service]` |
+| psql shell | `just compose exec db psql -U appuser -d appdb` |
 | Prod backend image | `docker build -f infra/docker/backend.prod.Dockerfile backend` |
 | Vitest UI | `cd frontend && npm run test:ui` |
 
@@ -94,8 +96,11 @@ All Docker files live in `infra/docker/`: `docker-compose.yml` (dev stack),
 `docker-compose.prod.yml` (gunicorn backend + db), `<service>[.prod].Dockerfile`, and a
 `<name>.Dockerfile.dockerignore` next to each Dockerfile (BuildKit reads it in place of the build
 context's `.dockerignore`). Paths in the compose files are relative to `infra/docker/`. The justfile
-passes `-f infra/docker/docker-compose.yml -p <repo folder name>`; pass the same flags when running
-`docker compose` by hand so you hit the same containers and volumes.
+passes `-f infra/docker/docker-compose.yml -p <repo folder name>`. Run other compose commands
+through `just compose <args>` rather than bare `docker compose`. Without `-p` the project is named
+`docker` and you get a second set of containers and volumes. Put new Docker files in
+`infra/docker/` as `<service>[.<variant>].Dockerfile` with a matching `.dockerignore`.
+`backend/tests/test_infra_docker.py` enforces this layout.
 
 Inside Compose, the `environment:` blocks set `DATABASE_URL` and `CELERY_BROKER_URL` to the
 in-network hosts (`db:5432`, `redis:6379`). These override the `localhost` values in the root `.env`.
@@ -151,7 +156,10 @@ credentials. `DATABASE_URL` configures the database.
 - Test settings run tasks eagerly (`CELERY_TASK_ALWAYS_EAGER`), so tests need no broker.
 
 **Testing:** `core.settings.test` uses SQLite and a fast password hasher. Fixtures go in
-`conftest.py` (app-level or `backend/conftest.py`). Markers: `slow`, `integration`, `development`.
+`conftest.py` (app-level or `backend/conftest.py`). App tests live in `apps/<name>/`.
+Repo-level checks that are not tied to an app live in `backend/tests/` (both are in pytest's
+`testpaths`). `tests/test_infra_docker.py` checks the `infra/docker/` layout. Its
+`docker compose config` tests skip when Docker is not installed. Markers: `slow`, `integration`, `development`.
 
 **API docs:** no OpenAPI generator is installed. The API table in `README.md` is the
 hand-written contract.
