@@ -228,7 +228,10 @@ models/
 # Backend venv
 backend/.venv/
 
-# Frontend
+# Frontend (npm lives in frontend/ only; a root lockfile means npm ran in the wrong dir)
+/package-lock.json
+/package.json
+/node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/vite.config.ts.timestamp-*.mjs

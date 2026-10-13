@@ -9,7 +9,7 @@ Rules for AI coding agents working in this repository. This is the only agent in
 
 A **template** for new Django + DRF + React projects, as a decoupled monorepo:
 
-- **`backend/`**: Django REST Framework API (Python 3.13, PostgreSQL, Celery + Redis)
+- **`backend/`**: Django REST Framework API (Python 3.14, PostgreSQL, Celery + Redis)
 - **`frontend/`**: React 19 SPA (TypeScript, Vite, TanStack Router + Query)
 
 The backend exposes only `/api/` endpoints. The frontend consumes them over HTTP. The two halves
@@ -91,17 +91,20 @@ in-network hosts (`db:5432`, `redis:6379`). These override the `localhost` value
 
 ## Backend (`backend/`)
 
-**Stack:** Python 3.13, Django 5.1+, DRF, PostgreSQL (psycopg3), simplejwt, Celery + Redis
+**Stack:** Python 3.14, Django 6.0, DRF, PostgreSQL (psycopg3), simplejwt, Celery + Redis
 (`django-celery-results`, `django-celery-beat`), django-environ, uv, ruff, mypy, pytest +
 pytest-django, factory-boy, faker, freezegun, pytest-mock.
 
+Django is held at 6.0.x because `django-celery-beat` 2.9.0 requires `django<6.1`. Upgrade with
+`uv lock --upgrade` from `backend/`; it moves to 6.1 once celery-beat allows it.
+
 **Layout:** project package `core/` (settings, `celery.py`, `urls.py`), one app per domain under
-`apps/<name>/`. Current apps: `accounts` (CustomUser, registration, `/me`) and `pages` (health
+`apps/<name>/`. Current apps: `accounts` (CustomUser, registration, `/me`) and `utils` (health
 check and Celery task demo endpoints).
 
 **Views and URLs**
 - All endpoints are under `/api/`.
-- Use class-based views (`APIView`, `generics.*`, `ViewSet`). `apps/pages/views.py` uses
+- Use class-based views (`APIView`, `generics.*`, `ViewSet`). `apps/utils/views.py` uses
   `@api_view` function views. It is a legacy exception. Do not copy it.
 - Serializers go in `serializers.py`. Business logic goes in `services.py`, never in views or
   serializers.
@@ -146,7 +149,8 @@ hand-written contract.
 **Stack:** React 19, TypeScript ~6.0 (strict), Vite 8, TanStack Router, TanStack Query v5, Axios,
 Tailwind CSS v4, shadcn/ui (`base-nova` style on `@base-ui/react`), React Hook Form + Zod,
 Zustand + Immer, date-fns, ECharts + Recharts, react-markdown, Vitest + Testing Library + MSW,
-ESLint 10. Node 20.19+ or 22.12+.
+ESLint 10. Node 20.19+ or 22.12+. npm runs only in `frontend/` (the only `package.json` and
+`package-lock.json`). Never run `npm` or `npx` from the repo root.
 
 **Layout (`src/`):** `api/` (client, endpoint functions, `queryKeys.ts`), `components/` (`ui/`
 for shadcn, `charts/`, `layout/`), `hooks/`, `lib/`, `routes/`, `schemas/`, `store/`, `test/`,

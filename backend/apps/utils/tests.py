@@ -2,7 +2,7 @@ import pytest
 from celery import Celery
 from django.urls import reverse
 
-from apps.pages.tasks import add, debug_task
+from apps.utils.tasks import add, debug_task
 from core.celery import app as celery_app
 
 
@@ -56,7 +56,7 @@ class TestDebugTask:
         # registered on the app via autodiscover_tasks().
         result = debug_task.delay()
         assert result.get().startswith("debug_task ran: task_id=")
-        assert "apps.pages.tasks.debug_task" in celery_app.tasks
+        assert "apps.utils.tasks.debug_task" in celery_app.tasks
 
 
 class TestAddTask:
@@ -88,27 +88,27 @@ class TestProcessDataTask:
 
     def test_process_data_success(self, mocker):
         """Task returns expected result when called directly."""
-        from apps.pages.tasks import process_data
+        from apps.utils.tasks import process_data
 
-        mocker.patch("apps.pages.tasks.time.sleep")
+        mocker.patch("apps.utils.tasks.time.sleep")
         result = process_data({"key": "value", "count": 42})
         assert result["processed"] is True
         assert result["input"] == {"key": "value", "count": 42}
         assert result["items_count"] == 2
 
     def test_process_data_empty_payload(self, mocker):
-        from apps.pages.tasks import process_data
+        from apps.utils.tasks import process_data
 
-        mocker.patch("apps.pages.tasks.time.sleep")
+        mocker.patch("apps.utils.tasks.time.sleep")
         result = process_data({})
         assert result["processed"] is True
         assert result["items_count"] == 0
 
     def test_process_data_apply_success(self, mocker):
         """Task runs eagerly via .apply() and returns correct result."""
-        from apps.pages.tasks import process_data
+        from apps.utils.tasks import process_data
 
-        mocker.patch("apps.pages.tasks.time.sleep")
+        mocker.patch("apps.utils.tasks.time.sleep")
         ar = process_data.apply(args=[{"x": 1}])
         assert ar.successful()
         assert ar.result["processed"] is True
@@ -117,12 +117,12 @@ class TestProcessDataTask:
         """Task calls self.retry() when an exception occurs (eager: raises Retry)."""
         from celery.exceptions import Retry
 
-        import apps.pages.tasks as tasks_module
+        import apps.utils.tasks as tasks_module
 
         mocker.patch.object(
             tasks_module.time, "sleep", side_effect=RuntimeError("boom")
         )
-        from apps.pages.tasks import process_data
+        from apps.utils.tasks import process_data
 
         # In eager mode, self.retry() raises celery.exceptions.Retry
         with pytest.raises(Retry):
@@ -139,7 +139,7 @@ class TestTaskTriggerEndpoint:
     def test_trigger_returns_202(self, client, mocker):
         mock_task = mocker.MagicMock()
         mock_task.id = "test-task-id-123"
-        mocker.patch("apps.pages.views.process_data.delay", return_value=mock_task)
+        mocker.patch("apps.utils.views.process_data.delay", return_value=mock_task)
 
         url = reverse("task-trigger")
         response = client.post(url, data={}, content_type="application/json")
@@ -148,7 +148,7 @@ class TestTaskTriggerEndpoint:
     def test_trigger_returns_task_id(self, client, mocker):
         mock_task = mocker.MagicMock()
         mock_task.id = "abc-def-456"
-        mocker.patch("apps.pages.views.process_data.delay", return_value=mock_task)
+        mocker.patch("apps.utils.views.process_data.delay", return_value=mock_task)
 
         url = reverse("task-trigger")
         response = client.post(
@@ -157,7 +157,7 @@ class TestTaskTriggerEndpoint:
         assert response.json()["task_id"] == "abc-def-456"
 
     def test_trigger_passes_payload_to_task(self, client, mocker):
-        mock_delay = mocker.patch("apps.pages.views.process_data.delay")
+        mock_delay = mocker.patch("apps.utils.views.process_data.delay")
         mock_delay.return_value.id = "xyz-789"
 
         url = reverse("task-trigger")
@@ -178,7 +178,7 @@ class TestTaskStatusEndpoint:
         mock_result.successful.return_value = False
         mock_result.failed.return_value = False
         mock_result.traceback = None
-        mocker.patch("apps.pages.views.AsyncResult", return_value=mock_result)
+        mocker.patch("apps.utils.views.AsyncResult", return_value=mock_result)
 
         url = reverse("task-status", kwargs={"task_id": "some-id"})
         response = client.get(url)
@@ -195,7 +195,7 @@ class TestTaskStatusEndpoint:
         mock_result.successful.return_value = True
         mock_result.failed.return_value = False
         mock_result.result = {"processed": True}
-        mocker.patch("apps.pages.views.AsyncResult", return_value=mock_result)
+        mocker.patch("apps.utils.views.AsyncResult", return_value=mock_result)
 
         url = reverse("task-status", kwargs={"task_id": "done-id"})
         response = client.get(url)
@@ -209,7 +209,7 @@ class TestTaskStatusEndpoint:
         mock_result.successful.return_value = False
         mock_result.failed.return_value = True
         mock_result.traceback = "Traceback: RuntimeError"
-        mocker.patch("apps.pages.views.AsyncResult", return_value=mock_result)
+        mocker.patch("apps.utils.views.AsyncResult", return_value=mock_result)
 
         url = reverse("task-status", kwargs={"task_id": "fail-id"})
         response = client.get(url)
@@ -228,7 +228,7 @@ class TestTaskRevokeEndpoint:
 
     def test_revoke_returns_revoked_true(self, client, mocker):
         mock_result = mocker.MagicMock()
-        mocker.patch("apps.pages.views.AsyncResult", return_value=mock_result)
+        mocker.patch("apps.utils.views.AsyncResult", return_value=mock_result)
 
         url = reverse("task-revoke", kwargs={"task_id": "revoke-me"})
         response = client.post(url, data={}, content_type="application/json")
@@ -239,7 +239,7 @@ class TestTaskRevokeEndpoint:
 
     def test_revoke_calls_revoke_with_terminate_false(self, client, mocker):
         mock_result = mocker.MagicMock()
-        mocker.patch("apps.pages.views.AsyncResult", return_value=mock_result)
+        mocker.patch("apps.utils.views.AsyncResult", return_value=mock_result)
 
         url = reverse("task-revoke", kwargs={"task_id": "revoke-me"})
         client.post(url, data={}, content_type="application/json")
@@ -247,7 +247,7 @@ class TestTaskRevokeEndpoint:
 
     def test_revoke_with_terminate_true(self, client, mocker):
         mock_result = mocker.MagicMock()
-        mocker.patch("apps.pages.views.AsyncResult", return_value=mock_result)
+        mocker.patch("apps.utils.views.AsyncResult", return_value=mock_result)
 
         url = reverse("task-revoke", kwargs={"task_id": "revoke-me"})
         client.post(url, data={"terminate": True}, content_type="application/json")
@@ -271,7 +271,7 @@ class TestBeatRegistration:
         task = PeriodicTask.objects.create(
             interval=schedule,
             name="test-add-every-minute",
-            task="apps.pages.tasks.add",
+            task="apps.utils.tasks.add",
             kwargs='{"x": 1, "y": 2}',
         )
         assert PeriodicTask.objects.filter(name="test-add-every-minute").exists()

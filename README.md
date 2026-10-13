@@ -2,7 +2,7 @@
 
 A monorepo starter for a decoupled web application:
 
-- **`backend/`** — Django REST Framework API (Python 3.13, PostgreSQL, Celery)
+- **`backend/`** — Django REST Framework API (Python 3.14, PostgreSQL, Celery)
 - **`frontend/`** — React 19 SPA (TypeScript, Vite, TanStack Router, TanStack Query)
 
 ---
@@ -57,7 +57,7 @@ docker compose exec backend python manage.py migrate
 │   ├── core/         Settings, URLs, WSGI
 │   ├── apps/         Domain applications
 │   │   ├── accounts/ User model (email-based), registration, JWT auth
-│   │   └── pages/    Health check, Celery task demo endpoints
+│   │   └── utils/    Health check, Celery task demo endpoints
 │   └── manage.py
 ├── frontend/         React SPA
 │   └── src/
@@ -79,8 +79,8 @@ docker compose exec backend python manage.py migrate
 
 | Layer | Technology |
 |-------|-----------|
-| Backend language | Python 3.13 |
-| Backend framework | Django 5 + Django REST Framework |
+| Backend language | Python 3.14 |
+| Backend framework | Django 6 + Django REST Framework |
 | Auth | JWT (`djangorestframework-simplejwt`) |
 | Database | PostgreSQL 16 |
 | Async tasks | Celery + Redis (`django-celery-results`, `django-celery-beat`) |
