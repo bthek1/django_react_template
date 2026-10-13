@@ -149,7 +149,8 @@ hand-written contract.
 **Stack:** React 19, TypeScript ~6.0 (strict), Vite 8, TanStack Router, TanStack Query v5, Axios,
 Tailwind CSS v4, shadcn/ui (`base-nova` style on `@base-ui/react`), React Hook Form + Zod,
 Zustand + Immer, date-fns, ECharts + Recharts, react-markdown, Vitest 5 + Testing Library + MSW 3,
-ESLint 10. Node 22.12+ (MSW 3 and jest-dom 7 require it).
+ESLint 10. Node 24 LTS (`frontend/.nvmrc`; `engines` allows 22.12+, 24, 26+. Odd releases like 25 are
+unsupported by Vitest 5).
 TypeScript stays on 6.0 until `typescript-eslint` supports 7 (it requires `typescript <6.1`). npm runs only in `frontend/` (the only `package.json` and
 `package-lock.json`). Never run `npm` or `npx` from the repo root.
 
