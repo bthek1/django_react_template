@@ -67,8 +67,8 @@ Rarer tasks have no recipe. Run them directly:
 
 | Task | Command |
 |---|---|
-| Backend dev server only | `just be-dev` (private helper, :8005) |
-| Frontend dev server only | `just fe-dev` (private helper, :5174) |
+| Backend dev server only | `just be-dev` (private helper, :8006) |
+| Frontend dev server only | `just fe-dev` (private helper, :5175) |
 | Backend coverage | `cd backend && uv run pytest --cov=apps --cov-report=term-missing` |
 | Type check backend | `cd backend && uv run mypy .` |
 | New Django app | `mkdir backend/apps/<name> && cd backend && uv run python manage.py startapp <name> apps/<name>` |
@@ -86,11 +86,11 @@ Host ports are offset so they do not clash with a locally installed Postgres or 
 
 | Service | Host port | Notes |
 |---|---|---|
-| `db` | `5435` -> 5432 | Postgres 16 (`appuser` / `apppassword` / `appdb`) |
-| `redis` | `6380` -> 6379 | Celery broker |
-| `backend` | `8005` | Django dev server |
+| `db` | `5436` -> 5432 | Postgres 16 (`appuser` / `apppassword` / `appdb`) |
+| `redis` | `6381` -> 6379 | Celery broker |
+| `backend` | `8006` | Django dev server |
 | `celery_worker`, `celery_beat` | none | beat uses `DatabaseScheduler` |
-| `frontend` | `5174` | Vite dev server |
+| `frontend` | `5175` | Vite dev server |
 
 All Docker files live in `infra/docker/`: `docker-compose.yml` (dev stack),
 `docker-compose.prod.yml` (gunicorn backend + db), `<service>[.prod].Dockerfile`, and a
@@ -139,6 +139,9 @@ check and Celery task demo endpoints).
 - All DB access goes through the ORM. Raw SQL only when unavoidable, and always parameterised.
 - Run `makemigrations` with an explicit app name after model changes. Never edit or delete
   migration files by hand.
+- Datetimes are always timezone-aware (`USE_TZ = True`, `TIME_ZONE = "UTC"`). Use
+  `django.utils.timezone.now()` or `datetime.now(UTC)`, never naive `datetime.now()` or
+  `utcnow()`.
 
 **Settings:** split into `core/settings/{base,dev,prod,test}.py`. `manage.py` defaults
 `DJANGO_SETTINGS_MODULE` to `core.settings`, whose `__init__.py` picks `dev`, `test` or `prod` from
@@ -170,7 +173,7 @@ hand-written contract.
 
 **Stack:** React 19, TypeScript ~6.0 (strict), Vite 8, TanStack Router, TanStack Query v5, Axios,
 Tailwind CSS v4, shadcn/ui (`base-nova` style on `@base-ui/react`), React Hook Form + Zod,
-Zustand + Immer, date-fns, ECharts + Recharts, react-markdown, Vitest 5 + Testing Library + MSW 3,
+Zustand + Immer, date-fns, ECharts, react-markdown, Vitest 5 + Testing Library + MSW 3,
 ESLint 10. Node 24 LTS (`frontend/.nvmrc`; `engines` allows 22.12+, 24, 26+. Odd releases like 25 are
 unsupported by Vitest 5).
 TypeScript stays on 6.0 until `typescript-eslint` supports 7 (it requires `typescript <6.1`). npm runs only in `frontend/` (the only `package.json` and
@@ -215,8 +218,8 @@ for shadcn, `charts/`, `layout/`), `hooks/`, `lib/`, `routes/`, `schemas/`, `sto
 
 **Utilities**
 - Dates: always through the `src/lib/date.ts` wrappers, never `date-fns` directly in components.
-- Charts: ECharts through the lazy-loaded `src/components/charts/EChart.tsx` wrapper (keep it
-  code-split), or Recharts inline for light SVG charts.
+- Charts: ECharts only, through the lazy-loaded `src/components/charts/EChart.tsx` wrapper
+  (keep it code-split). Do not add another chart library.
 - Markdown / LLM output: render with `src/components/Markdown.tsx`.
 
 **Testing**
@@ -273,10 +276,13 @@ Any change touching more than one file needs a plan issue before implementation.
   walkthrough.
 - When work starts, swap `status: draft` for `status: in-progress`
   (`gh issue edit <n> --remove-label "status: draft" --add-label "status: in-progress"`).
+- Before starting the next phase, run the current phase's **Validation** tests and confirm they
+  pass. Report what you ran and the result.
 - When a phase lands, tick its boxes in the issue body (`gh issue edit <n> --body-file <file>`)
   and comment with the validation results (`gh issue comment <n> --body "..."`).
 - When all phases are done, close the issue as completed (`Closes #<n>` in the final PR, or
   `gh issue close <n> --reason completed`). Close abandoned plans as `not planned` with a reason.
+- Larger plans get a milestone, with one sub-issue per phase.
 - Reference the issue (`#<n>`) in related commits and PRs. Never delete plan issues.
 
 ---
@@ -286,7 +292,7 @@ Any change touching more than one file needs a plan issue before implementation.
 - Backend and frontend communicate only through the API contract. Never mix their concerns.
 - Never commit `.env` files. `.env.example` is the source of truth for required vars.
 - There is exactly one env file: `.env` in the repo root, from `.env.example` (`cp .env.example .env`).
-  Django, Vite, docker-compose (`env_file`), direnv (`backend/.envrc`) and VS Code all read it.
+  Django, Vite, docker-compose (`env_file`), direnv (`.envrc`) and VS Code all read it.
   Do not add per-folder `.env` files. Add new vars to the root `.env.example`, grouped under the
   backend or frontend heading.
 - There is exactly one `.gitignore`, in the repo root. Do not add per-folder `.gitignore` files.
@@ -294,11 +300,17 @@ Any change touching more than one file needs a plan issue before implementation.
   `.gitignore` files that ruff, pytest and mypy write inside their own cache folders are
   untracked tool output; leave them.
 - Prefer explicit, readable code over clever code.
+- ASCII only in code, docstrings and comments. No em dashes or en dashes in prose docs.
+
+## Git
+
+Agents do not run git write operations: no `add`, `mv`, `rm`, `commit`, `push`, `merge`,
+`rebase`, `reset`, `stash`, `restore`, `clean` or branch checkout. Make the change in the working
+tree, then list the changed files and the git commands for the user to run. Read-only commands
+(`status`, `diff`, `log`, `show`) are fine.
 
 ## Never do without explicit confirmation
 
-- Git: `commit`, `push` (any form), `reset --hard`, `rebase` / `merge` on shared branches,
-  `branch -D`.
 - Files: `rm -rf` on non-temporary directories, deleting migration files.
 - Infrastructure: `docker compose down -v` (destroys DB volumes), editing shared `.env` files.
 - Process: bypassing hooks (`--no-verify`), dropping or truncating tables directly.

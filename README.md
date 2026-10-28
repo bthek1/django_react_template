@@ -2,8 +2,8 @@
 
 A monorepo starter for a decoupled web application:
 
-- **`backend/`** — Django REST Framework API (Python 3.14, PostgreSQL, Celery)
-- **`frontend/`** — React 19 SPA (TypeScript, Vite, TanStack Router, TanStack Query)
+- **`backend/`**: Django REST Framework API (Python 3.14, PostgreSQL, Celery)
+- **`frontend/`**: React 19 SPA (TypeScript, Vite, TanStack Router, TanStack Query)
 
 ---
 
@@ -30,10 +30,10 @@ compose file's folder, and create a separate set of containers and volumes.
 
 | Service | URL |
 |---------|-----|
-| Frontend | http://localhost:5174 |
-| Backend API | http://localhost:8005/api/ |
-| Django admin | http://localhost:8005/admin/ |
-| Health check | http://localhost:8005/api/health/ |
+| Frontend | http://localhost:5175 |
+| Backend API | http://localhost:8006/api/ |
+| Django admin | http://localhost:8006/admin/ |
+| Health check | http://localhost:8006/api/health/ |
 | Flower (Celery UI) | http://localhost:5555 (`cd backend && uv run celery -A core flower --port=5555`) |
 
 ---
@@ -46,7 +46,7 @@ just install            # uv sync + npm install
 just dev                # db + redis + celery in Docker, backend and frontend locally
 ```
 
-The backend runs on `:8005` and the frontend on `:5174`. Run `just --list` for every command.
+The backend runs on `:8006` and the frontend on `:5175`. Run `just --list` for every command.
 
 ---
 
@@ -126,6 +126,6 @@ All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Be
 | Forms | React Hook Form + Zod |
 | Global state | Zustand |
 | Testing (frontend) | Vitest + React Testing Library + MSW |
-| Utilities | date-fns, ECharts, Recharts, react-markdown |
+| Utilities | date-fns, ECharts, react-markdown |
 | Container | Docker Compose |
 | Task runner | [just](https://github.com/casey/just) |
