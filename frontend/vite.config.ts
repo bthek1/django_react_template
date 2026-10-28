@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { TanStackRouterVite } from "@tanstack/router-vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
@@ -20,11 +20,13 @@ export default defineConfig({
   },
   server: {
     host: "0.0.0.0",
-    port: 5174,
+    port: 5175,
   },
   test: {
     environment: "happy-dom",
     setupFiles: ["./src/test/setup.ts"],
     globals: true,
+    // Playwright specs live in e2e/ and run with `npm run test:e2e`.
+    exclude: [...configDefaults.exclude, "e2e/**"],
   },
 });

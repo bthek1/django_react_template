@@ -22,7 +22,7 @@ PROD_COMPOSE = DOCKER_DIR / "docker-compose.prod.yml"
 COMPOSE_FILES = [DEV_COMPOSE, PROD_COMPOSE]
 
 # Host ports documented in AGENTS.md ("Local services and ports").
-DEV_HOST_PORTS = {"db": "5435", "redis": "6380", "backend": "8005", "frontend": "5174"}
+DEV_HOST_PORTS = {"db": "5436", "redis": "6381", "backend": "8006", "frontend": "5175"}
 
 # Folders that never hold project files.
 SKIP_DIRS = {

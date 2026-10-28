@@ -13,7 +13,7 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@example.com")
 
 CORS_ALLOWED_ORIGINS = env.list(
-    "CORS_ALLOWED_ORIGINS", default=["http://localhost:5174"]
+    "CORS_ALLOWED_ORIGINS", default=["http://localhost:5175"]
 )
 
 CORS_ALLOWED_ORIGIN_REGEXES = [

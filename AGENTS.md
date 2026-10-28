@@ -57,6 +57,7 @@ just be-lint        # ruff check (note: pyproject sets fix = true, so this rewri
 just be-fmt         # ruff format
 
 just fe-test        # vitest
+just fe-e2e         # playwright (own backend :8016 + frontend :5185, extra args pass through)
 just fe-lint        # eslint
 just fe-build       # type-check + build
 
@@ -79,6 +80,8 @@ Rarer tasks have no recipe. Run them directly:
 | psql shell | `just compose exec db psql -U appuser -d appdb` |
 | Prod backend image | `docker build -f infra/docker/backend.prod.Dockerfile backend` |
 | Vitest UI | `cd frontend && npm run test:ui` |
+| Playwright UI | `just fe-e2e --ui` |
+| Install Playwright browser | `cd frontend && npx playwright install chromium` |
 
 ### Local services and ports
 
@@ -91,6 +94,7 @@ Host ports are offset so they do not clash with a locally installed Postgres or 
 | `backend` | `8006` | Django dev server |
 | `celery_worker`, `celery_beat` | none | beat uses `DatabaseScheduler` |
 | `frontend` | `5175` | Vite dev server |
+| e2e backend / frontend | `8016` / `5185` | Started by `just fe-e2e` only (Playwright `webServer`) |
 
 All Docker files live in `infra/docker/`: `docker-compose.yml` (dev stack),
 `docker-compose.prod.yml` (gunicorn backend + db), `<service>[.prod].Dockerfile`, and a
@@ -143,7 +147,7 @@ check and Celery task demo endpoints).
   `django.utils.timezone.now()` or `datetime.now(UTC)`, never naive `datetime.now()` or
   `utcnow()`.
 
-**Settings:** split into `core/settings/{base,dev,prod,test}.py`. `manage.py` defaults
+**Settings:** split into `core/settings/{base,dev,prod,test,e2e}.py` (`e2e` is used only by Playwright). `manage.py` defaults
 `DJANGO_SETTINGS_MODULE` to `core.settings`, whose `__init__.py` picks `dev`, `test` or `prod` from
 the `SETTINGS` env var (default `dev`). pytest uses `core.settings.test` directly. All config comes from env vars via `django-environ`, loaded from the
 repo-root `.env` (`base.py` reads `BASE_DIR.parent / ".env"`). Never hardcode secrets or
@@ -233,6 +237,19 @@ for shadcn, `charts/`, `layout/`), `hooks/`, `lib/`, `routes/`, `schemas/`, `sto
   `server.use(...)`) or mock Axios at module level. Never make real HTTP calls.
 - Co-locate tests with the code they test (`Button.test.tsx` next to `button.tsx`). Route tests
   live in `src/__tests__/routes/`. Zod schemas get plain unit tests.
+
+**End-to-end tests (Playwright)**
+- Specs live in `frontend/e2e/*.spec.ts`. Config is `frontend/playwright.config.ts`. Vitest
+  excludes `e2e/`, and `tsconfig.node.json` type-checks it.
+- They drive the real SPA against the real API. The config's `webServer` boots Django with
+  `core.settings.e2e` (test settings plus its own SQLite file and CORS for `:5185`) and Vite with
+  `VITE_API_BASE_URL` pointing at `:8016`. Do not mock HTTP in e2e specs; that is what Vitest + MSW
+  are for.
+- Each test creates its own data (unique emails), so tests stay independent and reruns are safe
+  without resetting the database.
+- Prefer role / label / text locators (`getByRole`, `getByLabel`) over CSS selectors.
+- Keep e2e for cross-stack flows (auth, CORS, JWT refresh). Component and route edge cases
+  belong in Vitest.
 
 ---
 

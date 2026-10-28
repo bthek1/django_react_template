@@ -18,12 +18,15 @@ export default function EChart({
   className,
   notMerge = true,
 }: EChartProps) {
+  // The wrapper takes the size from `className`; the chart fills it. Putting
+  // `className` on ReactECharts directly loses to its inline height style.
   return (
-    <ReactECharts
-      option={option}
-      notMerge={notMerge}
-      style={{ height: "100%", width: "100%" }}
-      className={className}
-    />
+    <div className={className}>
+      <ReactECharts
+        option={option}
+        notMerge={notMerge}
+        style={{ height: "100%", width: "100%" }}
+      />
+    </div>
   )
 }

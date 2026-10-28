@@ -10,6 +10,6 @@ RUN npm install
 
 COPY . /app
 
-EXPOSE 5174
+EXPOSE 5175
 
 CMD ["npm", "run", "dev", "--", "--host"]

@@ -24,8 +24,8 @@ default:
 dev: db-up celery-up
     #!/usr/bin/env bash
     echo "Starting backend and frontend dev servers..."
-    echo "  Backend : http://localhost:8005"
-    echo "  Frontend: http://localhost:5174"
+    echo "  Backend : http://localhost:8006"
+    echo "  Frontend: http://localhost:5175"
     _pids=()
     _cleanup() {
         echo ""
@@ -106,6 +106,11 @@ be-fmt:
 fe-test:
     cd frontend && npm test
 
+# Run Playwright e2e tests (boots its own backend on :8016 and frontend on :5185)
+[group('frontend')]
+fe-e2e *args:
+    cd frontend && npm run test:e2e -- {{ args }}
+
 # Lint frontend code
 [group('frontend')]
 fe-lint:
@@ -128,15 +133,15 @@ db-reset:
 
 # --- Helpers used by `dev` (hidden from the list, still runnable by name) ---
 
-# Run the Django dev server on :8005 (runs makemigrations + migrate first)
+# Run the Django dev server on :8006 (runs makemigrations + migrate first)
 [private]
 be-dev: be-makemigrations be-migrate
-    cd backend && uv run python manage.py runserver 0.0.0.0:8005
+    cd backend && uv run python manage.py runserver 0.0.0.0:8006
 
-# Run the Vite dev server on :5174
+# Run the Vite dev server on :5175
 [private]
 fe-dev:
-    cd frontend && npm run dev -- --host 0.0.0.0 --port 5174
+    cd frontend && npm run dev -- --host 0.0.0.0 --port 5175
 
 # Start the db container if not already running
 [private]

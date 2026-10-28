@@ -48,6 +48,18 @@ just dev                # db + redis + celery in Docker, backend and frontend lo
 
 The backend runs on `:8006` and the frontend on `:5175`. Run `just --list` for every command.
 
+### End-to-end tests (Playwright)
+
+```bash
+cd frontend && npx playwright install chromium   # once per machine
+just fe-e2e                                      # or: just fe-e2e --ui / --headed / e2e/auth.spec.ts
+```
+
+`just fe-e2e` starts its own Django server on `:8016` (`core.settings.e2e`, SQLite in
+`backend/e2e.sqlite3`) and Vite on `:5185`, runs the specs in `frontend/e2e/`, then stops both.
+It needs no Docker and does not touch a running `just dev` stack. Reports and traces land in
+`frontend/playwright-report/` and `frontend/test-results/` (gitignored).
+
 ---
 
 ## API
@@ -91,6 +103,7 @@ All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Be
 │   ├── tests/        Repo-level tests (infra/docker layout)
 │   └── manage.py
 ├── frontend/         React SPA
+│   ├── e2e/          Playwright end-to-end specs
 │   └── src/
 │       ├── api/      Axios client, query keys, API functions
 │       ├── components/ui/  shadcn/ui components
@@ -126,6 +139,7 @@ All endpoints are under `/api/`. Authenticated endpoints need `Authorization: Be
 | Forms | React Hook Form + Zod |
 | Global state | Zustand |
 | Testing (frontend) | Vitest + React Testing Library + MSW |
+| Testing (end-to-end) | Playwright (real SPA against real API) |
 | Utilities | date-fns, ECharts, react-markdown |
 | Container | Docker Compose |
 | Task runner | [just](https://github.com/casey/just) |

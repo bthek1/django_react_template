@@ -4,7 +4,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6380:6379"
+      - "6381:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -18,7 +18,7 @@ services:
       POSTGRES_USER: appuser
       POSTGRES_PASSWORD: apppassword
     ports:
-      - "5435:5432"
+      - "5436:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
@@ -26,11 +26,11 @@ services:
     build:
       context: ../../backend
       dockerfile: ../infra/docker/backend.Dockerfile
-    command: python manage.py runserver 0.0.0.0:8005
+    command: python manage.py runserver 0.0.0.0:8006
     volumes:
       - ../../backend:/app
     ports:
-      - "8005:8005"
+      - "8006:8006"
     depends_on:
       - db
     env_file:
@@ -88,12 +88,12 @@ services:
       - ../../frontend:/app
       - /app/node_modules
     ports:
-      - "5174:5174"
+      - "5175:5175"
     env_file:
       - path: ../../.env
         required: false
     environment:
-      VITE_API_BASE_URL: http://localhost:8005
+      VITE_API_BASE_URL: http://localhost:8006
 
 volumes:
   postgres_data:
